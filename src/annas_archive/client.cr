@@ -3,10 +3,10 @@ require "uri"
 require "set"
 require "http/params"
 
-# An extractable, metadata-only HTML client. No credentials, process execution,
-# challenge retries or file downloads. The caller supplies its HTTP policy.
+# Bounded metadata client with one-shot challenge compatibility retries.
+# The caller supplies its HTTP policy; no scripts or external runtime execute.
 module AnnasArchive
-  VERSION        = "0.2.0"
+  VERSION        = "0.3.0"
   MAX_PAGE_BYTES = 1_048_576
   MAX_RESULTS    =        50
   CLOCK_ORIGIN   = Time.instant
@@ -204,7 +204,7 @@ module AnnasArchive
 
     # Parse only an ordinary accessible landing page. The caller schedules a
     # countdown and validates each returned URL through its transport policy.
-    # Never change a URL to evade a challenge or infer a hidden download route.
+    # Parsing alone never performs requests or changes URL encoding.
     def resolve(body : String, page_url : String) : Resolution
       doc = document(body)
       raise Error.new("authentication_required") if doc.xpath_node("//input[translate(@type,'PASSWORD','password')='password']")
@@ -235,9 +235,9 @@ module AnnasArchive
     getter origin : String
 
     # The transport must enforce exact-host/DNS/redirect/size/time policies.
-    # This library neither loads cookies nor alters blocked URLs to retry them.
+    # Recognized challenges alone allow one same-origin compatibility retry.
     def initialize(@origin : String, @fetch : Proc(String, Response), @delay_seconds : Int32 = 30,
-                   @clock : Proc(Time::Span) = -> { Time.instant - CLOCK_ORIGIN })
+                   @clock : Proc(Time::Span) = -> { Time.instant - CLOCK_ORIGIN }, @challenge_retries : Bool = true)
       uri = parse_origin(@origin)
       raise Error.new("invalid_input") unless uri.scheme == "https" && uri.host && !uri.user && !uri.password && !uri.port && uri.path.in?({"", "/"}) && !uri.query && !uri.fragment && @delay_seconds.in?(1..3600)
       @origin = @origin.rstrip('/')
@@ -284,35 +284,42 @@ module AnnasArchive
       uri = parse_origin(url)
       base = URI.parse(@origin)
       raise Error.new("invalid_input") unless url.bytesize <= 4096 && uri.scheme == base.scheme && uri.host == base.host && uri.port == base.port && !uri.user && !uri.password && !uri.fragment && uri.path.matches?(/\A\/slow_download\/[a-f0-9]{32}\/\d+\/\d+\/?\z/)
-      Parser.resolve(page(uri.request_target), url)
+      Parser.resolve(page(uri.request_target, slow: true), url)
     end
 
-    private def page(path : String) : String
+    private def page(path : String, slow : Bool = false) : String
       @lock.synchronize do
         now = @clock.call
         raise Error.new("rate_limited", (@next_request - now).total_seconds.ceil.to_i.clamp(1, 3600)) if now < @next_request
         @next_request = now + @delay_seconds.seconds
         begin
-          response = fetch(@origin + path)
+          begin
+            request_page(@origin + path)
+          rescue ex : Error
+            raise ex unless @challenge_retries && ex.code == "browser_verification_required"
+            retry_path = slow ? path.sub("/slow_download/", "/slow%5Fdownload/") : path + (path.includes?('?') ? "&" : "?") + "check=%31"
+            @next_request = @clock.call + @delay_seconds.seconds
+            request_page(@origin + retry_path)
+          end
         rescue ex : Error
           if ex.code == "rate_limited" && (delay = ex.retry_after)
             @next_request = @clock.call + Math.max(delay, 1).seconds
           end
           raise ex
         end
-        if response.status == 429
-          delay = Math.max(response.retry_after || @delay_seconds, 1)
-          @next_request = @clock.call + delay.seconds
-          raise Error.new("rate_limited", delay)
-        end
-        # Recognize 200/403/503 challenges without retry; empty error responses
-        # retain their HTTP classification rather than becoming parser failures.
-        Parser.document(response.body) unless response.body.strip.empty?
-        raise Error.new("authentication_required") if response.status == 401
-        raise Error.new("access_denied") if response.status == 403
-        raise Error.new("unavailable") unless response.status == 200
-        response.body
       end
+    end
+
+    private def request_page(url : String) : String
+      response = fetch(url)
+      if response.status == 429
+        raise Error.new("rate_limited", Math.max(response.retry_after || @delay_seconds, 1))
+      end
+      Parser.document(response.body) unless response.body.strip.empty?
+      raise Error.new("authentication_required") if response.status == 401
+      raise Error.new("access_denied") if response.status == 403
+      raise Error.new("unavailable") unless response.status == 200
+      response.body
     end
 
     private def fetch(url : String) : Response

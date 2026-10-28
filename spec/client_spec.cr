@@ -106,9 +106,9 @@ describe AnnasArchive::Client do
     urls.size.should eq 1
   end
 
-  it "does not retry or rewrite challenge URLs" do
+  it "can opt out of challenge compatibility retries" do
     urls = [] of String
-    client = AnnasArchive::Client.new("https://catalog.example.invalid", ->(url : String) { urls << url; AnnasArchive::Response.new(403, "<title>Just a moment</title>") })
+    client = AnnasArchive::Client.new("https://catalog.example.invalid", ->(url : String) { urls << url; AnnasArchive::Response.new(403, "<title>Just a moment</title>") }, challenge_retries: false)
     expect_raises(AnnasArchive::Error, "browser_verification_required") { client.search("Comic") }
     urls.size.should eq 1
     urls.first.should_not contain "check="

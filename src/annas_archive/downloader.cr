@@ -30,8 +30,14 @@ module AnnasArchive
     @cooldowns = {} of String => Time::Instant
     @cooldown_lock = Mutex.new
 
-    def initialize(@transport : StreamTransport = NativeHTTPTransport.new, @policy : DownloadPolicy = DownloadPolicy.new)
+    def initialize(@transport : StreamTransport = NativeHTTPTransport.new, @policy : DownloadPolicy = DownloadPolicy.new,
+                   @origin : String? = nil, @challenge_retries : Bool = true)
       raise Error.new("invalid_input") unless @policy.max_bytes.in?(1_i64..2_147_483_648_i64) && @policy.max_uncompressed_bytes.in?(1_i64..2_147_483_648_i64) && @policy.max_entries.in?(1..65_535)
+      if origin = @origin
+        uri = PublicHTTPS.uri(origin)
+        raise Error.new("invalid_input") unless uri.path.in?({"", "/"}) && !uri.query
+        @origin = origin.rstrip('/')
+      end
       TransferContext.new(@policy.timeout)
     end
 
@@ -68,34 +74,53 @@ module AnnasArchive
       md5 = Digest::MD5.new
       sha = Digest::SHA256.new
       total = 0_i64
-      @transport.open(url, context) do |response|
-        status!(response, host)
-        encoding = response.headers["Content-Encoding"]?.to_s.downcase
-        raise Error.new("download_invalid_response") unless encoding.empty? || encoding == "identity"
-        declared = response.headers["Content-Length"]?
-        raise Error.new("download_invalid_response") if declared && (!declared.matches?(/\A[0-9]+\z/) || !declared.to_i64?)
-        length = declared.try(&.to_i64)
-        raise Error.new("download_size_limit") if length && length > @policy.max_bytes
-        type = response.headers["Content-Type"]?.to_s.downcase
-        raise Error.new("download_invalid_response") if type.includes?("html") || type.includes?("json") || type.includes?("xml")
-        prefix = Bytes.new(Math.min(512_i64, @policy.max_bytes + 1).to_i)
-        count = response.body.read_greedy(prefix)
-        raise Error.new("download_empty") if count == 0
-        sniff = String.new(prefix[0, count]).scrub.lstrip("\uFEFF \t\r\n").downcase
-        raise Error.new("download_invalid_response") if ["<!doctype", "<html", "<head", "<script", "<body", "<?xml", "{\"", "{\n"].any? { |prefix| sniff.starts_with?(prefix) }
-        buffer = prefix
-        loop do
+      transfer_url = url
+      retried = false
+      loop do
+        begin
+          @transport.open(transfer_url, context) do |response|
+            inspect_challenge!(response.body, context) if response.status.in?({401, 403, 503})
+            status!(response, host)
+            encoding = response.headers["Content-Encoding"]?.to_s.downcase
+            raise Error.new("download_invalid_response") unless encoding.empty? || encoding == "identity"
+            declared = response.headers["Content-Length"]?
+            raise Error.new("download_invalid_response") if declared && (!declared.matches?(/\A[0-9]+\z/) || !declared.to_i64?)
+            length = declared.try(&.to_i64)
+            raise Error.new("download_size_limit") if length && length > @policy.max_bytes
+            type = response.headers["Content-Type"]?.to_s.downcase
+            if type.includes?("html")
+              inspect_challenge!(response.body, context)
+              raise Error.new("download_invalid_response")
+            end
+            raise Error.new("download_invalid_response") if type.includes?("json") || type.includes?("xml")
+            prefix = Bytes.new(Math.min(512_i64, @policy.max_bytes + 1).to_i)
+            count = response.body.read_greedy(prefix)
+            raise Error.new("download_empty") if count == 0
+            sniff = String.new(prefix[0, count]).scrub.lstrip("\uFEFF \t\r\n").downcase
+            inspect_challenge!(response.body, context, String.new(prefix[0, count])) if ["<!doctype", "<html", "<head", "<script", "<body", "<title", "<form"].any? { |start| sniff.starts_with?(start) }
+            raise Error.new("download_invalid_response") if ["<!doctype", "<html", "<head", "<script", "<body", "<title", "<form", "<?xml", "{\"", "{\n"].any? { |prefix| sniff.starts_with?(prefix) }
+            buffer = prefix
+            loop do
+              context.check!
+              total += count
+              raise Error.new("download_size_limit") if total > @policy.max_bytes
+              output.write(buffer[0, count]); md5.update(buffer[0, count]); sha.update(buffer[0, count])
+              progress.try(&.call(total))
+              buffer = Bytes.new(65_536) if buffer.size < 65_536
+              count = response.body.read(buffer[0, Math.min(buffer.size.to_i64, @policy.max_bytes - total + 1).to_i])
+              break if count == 0
+            end
+            raise Error.new("download_truncated") if length && total != length
+            nil
+          end
+          break
+        rescue ex : Error
+          remember_cooldown!(host, ex.retry_after || 60) if ex.code == "rate_limited"
+          raise ex unless ex.code == "browser_verification_required" && total == 0 && !retried && @challenge_retries && slow_retry?(url)
+          retried = true
           context.check!
-          total += count
-          raise Error.new("download_size_limit") if total > @policy.max_bytes
-          output.write(buffer[0, count]); md5.update(buffer[0, count]); sha.update(buffer[0, count])
-          progress.try(&.call(total))
-          buffer = Bytes.new(65_536) if buffer.size < 65_536
-          count = response.body.read(buffer[0, Math.min(buffer.size.to_i64, @policy.max_bytes - total + 1).to_i])
-          break if count == 0
+          transfer_url = url.sub("/slow_download/", "/slow%5Fdownload/")
         end
-        raise Error.new("download_truncated") if length && total != length
-        nil
       end
       context.check!
       checksum = md5.final.hexstring
@@ -135,6 +160,32 @@ module AnnasArchive
       directory.try(&.close)
     end
 
+    private def slow_retry?(url : String) : Bool
+      return false unless origin = @origin
+      uri = URI.parse(url)
+      base = URI.parse(origin)
+      uri.scheme == base.scheme && uri.host == base.host && uri.port == base.port &&
+        uri.path.matches?(/\A\/slow_download\/[a-f0-9]{32}\/\d+\/\d+\/?\z/)
+    end
+
+    private def inspect_challenge!(body : IO, context : TransferContext, prefix : String = "") : Nil
+      output = IO::Memory.new
+      output << prefix
+      buffer = Bytes.new(16_384)
+      loop do
+        context.check!
+        count = body.read(buffer)
+        break if count == 0
+        raise Error.new("page_too_large") if output.size + count > MAX_PAGE_BYTES
+        output.write(buffer[0, count])
+      end
+      begin
+        Parser.document(output.to_s) unless output.empty?
+      rescue ex : Error
+        raise ex if ex.code == "browser_verification_required" || ex.code == "page_too_large"
+      end
+    end
+
     protected def sync_directory(directory : IO::FileDescriptor) : Nil
       directory.fsync
     end
@@ -148,15 +199,19 @@ module AnnasArchive
       end
     end
 
+    private def remember_cooldown!(host : String, delay : Int32) : Nil
+      @cooldown_lock.synchronize do
+        @cooldowns.reject! { |_, until_at| until_at <= Time.instant }
+        raise Error.new("download_cooldown_capacity") if @cooldowns.size >= 32 && !@cooldowns.has_key?(host)
+        @cooldowns[host] = Time.instant + Math.max(delay, 1).seconds
+      end
+    end
+
     private def status!(response : StreamResponse, host : String) : Nil
       status = response.status
       if status == 429
         delay = RetryDelay.seconds(response.headers["Retry-After"]?) || 60
-        @cooldown_lock.synchronize do
-          @cooldowns.reject! { |_, until_at| until_at <= Time.instant }
-          raise Error.new("download_cooldown_capacity") if @cooldowns.size >= 32 && !@cooldowns.has_key?(host)
-          @cooldowns[host] = Time.instant + delay.seconds
-        end
+        remember_cooldown!(host, delay)
         raise Error.new("rate_limited", delay)
       end
       raise Error.new("authentication_required") if status == 401

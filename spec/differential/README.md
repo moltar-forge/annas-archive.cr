@@ -9,7 +9,7 @@ The Python source was inspected before execution. Four reference module hashes
 are enforced by the runner. The four reduced HTML fixtures retain the reference
 MIT license in `../fixtures/reference/LICENSE`.
 
-The runner imports the inspected parser/client modules only. `Client.page` is
+The original metadata runner imports the inspected parser/client modules only. `Client.page` is
 replaced with its ordinary single-request path, with no challenge retry branch.
 `Client.download` is disabled. HTTP uses `httpx.MockTransport` exclusively;
 Python DNS/socket entrypoints fail if invoked. Challenge classification uses
@@ -46,7 +46,7 @@ Before correction, 6 of the initial 20 cases differed: bibliographic fields and
 source labels were omitted, current-record summaries included a Save control,
 and explicit page/repeated-filter requests were unavailable. After correction,
 **38 cases yield 30 matches, 8 documented differences, zero unexplained mismatches**.
-All **45 Crystal specs pass**, including native transport, streaming and output
+The original **45 Crystal specs passed**, including native transport, streaming and output
 validation. The additional metadata cases cover Python CLI default request
 parameters, its local 20-result limit and deferred cards at document position.
 
@@ -73,7 +73,11 @@ Intentional measured differences:
 - Crystal excludes HTTP source links; the reference emits them as metadata.
 
 Other deliberate boundaries are not parity claims: bounded input/response/link
-limits, no cookie import, no challenge-related URL rewriting, no mirror switching
-and no CLI process dependency. Mylar separately owns comic identity matching,
+limits, no browser cookie import, no mirror switching
+and no CLI process dependency. Version 0.3.0 adds scoped challenge retries and
+bounded in-memory same-host cookies; see [CHALLENGES.md](CHALLENGES.md) and the
+new independent `challenge-results.json` (8 matches, zero mismatches).
+The original outcome-only challenge-classification case is not evidence of
+request-level retry parity. Mylar separately owns comic identity matching,
 import state and application cleanup. See [full download evidence](DOWNLOADS.md)
 for the standalone native downloader and the remaining live boundary.
