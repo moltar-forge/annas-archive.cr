@@ -21,9 +21,10 @@ module AnnasArchive
   end
 
   record Response, status : Int32, body : String, retry_after : Int32? = nil
-  record Entry, md5 : String, title : String, language : String?, format : String?, summary : String
-  record Link, url : String, kind : String
-  record Detail, entry : Entry, links : Array(Link)
+  record Entry, md5 : String, title : String, language : String?, format : String?, summary : String,
+    author : String? = nil, publisher : String? = nil, size : String? = nil, cover_url : String? = nil, url : String? = nil
+  record Link, url : String, kind : String, label : String = ""
+  record Detail, entry : Entry, links : Array(Link), description : String = ""
   record Resolution, url : String? = nil, wait_seconds : Int32? = nil
 
   module Parser
@@ -58,19 +59,49 @@ module AnnasArchive
       raise Error.new("malformed_response")
     end
 
-    def md5_path(value : String) : String?
-      # Metadata links are relative record identifiers, never retrieval authority.
-      value.match(/\A\/md5\/([a-fA-F0-9]{32})\/?\z/).try(&.[1].downcase)
+    def md5_path(value : String, origin : String? = nil) : String?
+      # Reconstruct record URLs from identifiers; never follow an arbitrary href.
+      uri = URI.parse(value)
+      return nil if uri.user || uri.password
+      if uri.host || uri.scheme
+        return nil unless origin
+        base = URI.parse(origin)
+        return nil unless uri.scheme == base.scheme && uri.host == base.host && uri.port == base.port
+      end
+      uri.path.match(/\A\/md5\/([a-fA-F0-9]{32})\/?\z/).try(&.[1].downcase)
+    rescue URI::Error
+      nil
+    end
+
+    def summary_text(node : XML::Node?) : String
+      return "" unless node
+      clean = document(node.to_s)
+      clean.xpath_nodes("//a | //script | //style").each(&.unlink)
+      text(clean).rstrip(" ·")
+    end
+
+    def icon_text(node : XML::Node, icon : String) : String
+      text(node.xpath_node(".//*[contains(@class,'#{icon}')]/ancestor::a[1]"))
+    end
+
+    def metadata_url(value : String?, origin : String?) : String?
+      return nil unless value && !value.empty?
+      uri = URI.parse(origin || "").resolve(value)
+      return nil if uri.user || uri.password || uri.fragment || uri.scheme && uri.scheme != "https"
+      uri.to_s
+    rescue URI::Error
+      nil
     end
 
     def entry(md5 : String, title : String, summary : String) : Entry
       raise Error.new("malformed_response") unless title.bytesize.in?(1..1024) && summary.bytesize <= 4096
       language = summary.match(/\[([a-z]{2,3}(?:[-_][a-z0-9]+)?)\]/i).try(&.[1].downcase)
-      format = summary.split(/[,·]/).map(&.strip.downcase).find { |part| part.matches?(/\A(?:cbz|cbr|zip|rar|pdf|epub|mobi|azw3?|djvu?|txt|fb2)\z/) }
-      Entry.new(md5, title, language, format, summary)
+      format = summary.split(/[,·]/).map(&.strip.downcase).find { |part| part.matches?(/\A(?:cbz|cbr|zip|rar|pdf|epub|mobi|azw3?|djvu?|txt|rtf|docx?|html|fb2)\z/) }
+      size = summary.match(/\b\d+(?:[.,]\d+)?\s*[KMGT]?i?B\b/i).try(&.[0])
+      Entry.new(md5, title, language, format, summary, size: size)
     end
 
-    def search(body : String) : Array(Entry)
+    def search(body : String, origin : String? = nil) : Array(Entry)
       doc = document(body)
       fragments = [doc]
       doc.xpath_nodes("//*[#{has_class("js-scroll-hidden")}]//comment()").each do |comment|
@@ -79,30 +110,31 @@ module AnnasArchive
       found = {} of String => Entry
       fragments.each do |fragment|
         fragment.xpath_nodes("//a[@href]").each do |anchor|
-          md5 = md5_path(anchor["href"]) || next
+          md5 = md5_path(anchor["href"], origin) || next
           next if found.has_key?(md5)
           title = anchor.xpath_node(".//h3") || anchor.xpath_node(".//*[#{has_class("font-bold")}]")
           if title
             next if anchor.xpath_node(".//*[#{has_class("js-aarecord-list-fallback-cover")}]")
             title_text = text(title)
             summary = text(anchor.xpath_node(".//*[#{has_class("text-gray-500")}]"))
+            author_node = anchor.xpath_node(".//*[#{has_class("italic")}]")
+            publisher_node = title.xpath_node("following-sibling::div[1]")
+            author = text(author_node)
+            publisher = publisher_node == author_node ? "" : text(publisher_node)
+            cover = metadata_url(anchor.xpath_node(".//img[@src]").try(&.["src"]), origin)
           elsif anchor["class"]?.try(&.split.includes?("js-vim-focus"))
             details = anchor.parent.try(&.parent) || next
             title_text = text(anchor)
-            summary_node = details.xpath_node(".//*[#{has_class("text-gray-800")}]")
-            # Strip controls from a copy so title/other card links remain intact.
-            if summary_node
-              clean = document(summary_node.to_s)
-              clean.xpath_nodes("//a").each(&.unlink)
-              summary = text(clean)
-            else
-              summary = ""
-            end
+            summary = summary_text(details.xpath_node(".//*[#{has_class("text-gray-800")}]"))
+            author = icon_text(details, "mdi--user-edit")
+            publisher = icon_text(details, "mdi--company")
+            cover = metadata_url(details.parent.try(&.xpath_node(".//img[@src]")).try(&.["src"]), origin)
           else
             next
           end
           next if title_text.empty?
-          found[md5] = entry(md5, title_text, summary)
+          found[md5] = entry(md5, title_text, summary).copy_with(author: author, publisher: publisher, cover_url: cover,
+            url: origin.try { |base| URI.parse(base).resolve("/md5/#{md5}").to_s })
           raise Error.new("result_limit") if found.size > MAX_RESULTS
         end
       end
@@ -117,10 +149,20 @@ module AnnasArchive
       doc = document(body)
       title = doc.xpath_node("//div[#{has_class("text-2xl")} and #{has_class("font-semibold")}]")
       if title
-        summary = title.parent.try { |parent| text(parent.xpath_node(".//*[#{has_class("text-gray-800")}]")) } || ""
+        container = title.parent.not_nil!
+        summary = summary_text(container.xpath_node(".//*[#{has_class("text-gray-800")}]"))
+        author = icon_text(container, "mdi--user-edit")
+        publisher = icon_text(container, "mdi--company")
+        cover = metadata_url(container.xpath_node(".//img[@src]").try(&.["src"]), origin)
+        description = text(container.xpath_node(".//*[#{has_class("js-md5-top-box-description")}]"))
       else
         title = doc.xpath_node("//*[#{has_class("text-3xl")}]") || raise Error.new("unrecognized_page")
         summary = text(title.xpath_node("preceding-sibling::div[1]"))
+        publisher_node = title.xpath_node("following-sibling::div[1]")
+        publisher = text(publisher_node)
+        author = text(publisher_node.try(&.xpath_node("following-sibling::div[1]")))
+        cover = metadata_url(doc.xpath_node("//*[#{has_class("js-cover-background")}]/../img[@src]").try(&.["src"]), origin)
+        description = text(doc.xpath_node("//*[#{has_class("js-md5-top-box-description")}]"))
       end
       links = [] of Link
       seen = Set(String).new
@@ -131,10 +173,12 @@ module AnnasArchive
         next if seen.includes?(url)
         seen << url
         kind = uri.path.starts_with?("/fast_download/") ? "member" : uri.path.starts_with?("/slow_download/") ? "browser" : "external"
-        links << Link.new(url, kind)
+        label = text(anchor)
+        links << Link.new(url, kind, label.empty? ? uri.host.not_nil! : label)
         raise Error.new("result_limit") if links.size > 20
       end
-      Detail.new(entry(md5, text(title), summary), links)
+      Detail.new(entry(md5, text(title), summary).copy_with(author: author, publisher: publisher, cover_url: cover,
+        url: URI.parse(origin).resolve("/md5/#{md5}").to_s), links, description)
     rescue URI::Error
       raise Error.new("malformed_response")
     end
@@ -188,16 +232,27 @@ module AnnasArchive
       raise Error.new("invalid_input")
     end
 
-    def search(query : String, language : String? = nil, format : String? = nil) : Array(Entry)
+    def search(query : String, language : String? = nil, format : String? = nil,
+               languages : Array(String) = [] of String, formats : Array(String) = [] of String,
+               content : Array(String) = [] of String, page : Int32? = nil, sort : String? = nil) : Array(Entry)
       raise Error.new("invalid_input") unless query.bytesize.in?(1..512) && !query.strip.empty? && !query.matches?(/[\x00-\x1f\x7f]/)
-      raise Error.new("invalid_input") if language && !language.matches?(/\A[a-z]{2,3}(?:-[a-z0-9]+)?\z/)
-      raise Error.new("invalid_input") if format && !format.in?({"cbz", "cbr", "zip", "rar"})
+      language_filters = (language ? [language] : [] of String) + languages
+      format_filters = (format ? [format] : [] of String) + formats
+      raise Error.new("invalid_input") unless language_filters.size <= 20 && format_filters.size <= 20 && content.size <= 20
+      raise Error.new("invalid_input") unless language_filters.all? { |value| value.matches?(/\A[a-z]{2,3}(?:-[a-z0-9]+)?\z/) }
+      raise Error.new("invalid_input") unless format_filters.all? { |value| value.matches?(/\A(?:cbz|cbr|zip|rar|pdf|epub|mobi|azw3?|djvu?|txt|rtf|docx?|html|fb2)\z/) }
+      raise Error.new("invalid_input") unless content.all? { |value| value.matches?(/\A[a-z][a-z0-9_]{0,63}\z/) }
+      raise Error.new("invalid_input") if page && page < 1
+      raise Error.new("invalid_input") if sort && !sort.in?(%w[relevance newest oldest largest smallest newest_added oldest_added])
       params = HTTP::Params.new
       params.add("q", query)
       params.add("display", "")
-      params.add("lang", language) if language
-      params.add("ext", format) if format
-      Parser.search(page("/search?#{params}"))
+      language_filters.each { |value| params.add("lang", value) }
+      format_filters.each { |value| params.add("ext", value) }
+      content.each { |value| params.add("content", value) }
+      params.add("sort", sort) if sort
+      params.add("page", page.to_s) if page
+      Parser.search(page("/search?#{params}"), @origin)
     end
 
     def detail(md5 : String) : Detail

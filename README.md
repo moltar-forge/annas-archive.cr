@@ -85,13 +85,17 @@ network response. Translate and bound HTTP `Retry-After` dates/seconds in that
 transport. Do not forward cookies/credentials to other hosts or follow unvalidated
 links. No general network transport is included in this prototype.
 
-`search(query, language: nil, format: nil)` fetches exactly one `/search` page with
-`q`, `display`, optional `lang` and `ext` parameters. Query size is at most 512
-bytes. Archive filters are `cbz`, `cbr`, `zip` and `rar`. `detail(md5)` fetches one
+`search(query, language: nil, format: nil, languages: [], formats: [], content: [],
+page: nil, sort: nil)` fetches exactly one `/search` page. Scalar arguments remain
+compatible; plural filters emit repeated `lang`/`ext` parameters. `content`, explicit
+positive `page` and known sort modes are supported. No additional pages are fetched
+automatically. Query size remains at most 512 bytes and filter lists at most 20
+values. Bibliographic format filters include PDF/EPUB and the comic archive formats;
+applications must still reject formats they cannot import. `detail(md5)` fetches one
 `/md5/<hash>` page. `resolve(url)` fetches and parses one ordinary same-origin
 `/slow_download/<md5>/<number>/<number>` landing page. Signed query strings are
 preserved; encoded path alternatives and other origins are rejected before HTTP.
-It returns `Resolution`, never file bytes. The client never paginates, retries,
+It returns `Resolution`, never file bytes. The client never automatically paginates, retries,
 sleeps, switches mirrors,
 imports cookies, executes scripts or downloads files. There are no search caches.
 
@@ -121,8 +125,9 @@ closed code, never source HTML, credentials, transport exception text or a URL.
 | `page_too_large` / `result_limit` | Bounded parser limits exceeded |
 
 Only explicit empty-search text yields an empty result list. Metadata pages are
-limited to 1 MiB; searches to 50 distinct records; record links to 20. Only relative
-`/md5/<hash>` search links are interpreted as records. Hidden result comments are
+limited to 1 MiB; searches to 50 distinct records; record links to 20. Relative and verified same-origin
+`/md5/<hash>` search links are interpreted as identifiers; their canonical record
+URLs are reconstructed and foreign origins are ignored. Hidden result comments are
 read only inside `js-scroll-hidden` containers. No external entities are fetched.
 Fields remain bibliographic hints; applications must separately match and validate
 actual archives before considering an issue acquired or imported.
@@ -145,9 +150,10 @@ are excluded here.** Protected pages stop with an error. Membership/cookie suppo
 automatic multi-hop traversal, streamed transfer, MD5 validation,
 archive validation/import and resumable jobs are not implemented.
 
-The implementation and fixtures are independently written; see `NOTICE`.
-This project uses the MIT license. No upstream fixtures, ebooks, account data,
-private application files or production configuration are included.
+The implementation and synthetic fixtures are independently written; see `NOTICE`.
+Four reduced MIT-licensed reference HTML fixtures are included with their license
+for reproducible comparisons. No ebooks, account data, private application files
+or production configuration are included.
 
 ## Verification
 
@@ -161,3 +167,13 @@ layouts, deferred comments, duplicates, unknown/empty/protected pages, record li
 classification, parser bounds, query encoding, cooldowns, HTTP failures and input
 validation. No live service availability, rate allowance, authentication or file
 acquisition is claimed by those tests.
+
+
+## Offline Python comparison
+
+See [the parity report](spec/differential/README.md) for pins, exact commands,
+comparison scope and intentional differences. `Entry` now retains author,
+publisher, displayed size, cover and record URLs in addition to the original
+identity hints. `Detail.description` and `Link.label` retain source metadata.
+Existing constructors and scalar `search` calls remain compatible. Metadata URLs
+are hints only; they are never fetched or granted download authority by parsing.

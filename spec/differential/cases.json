@@ -1,0 +1,211 @@
+[
+  {
+    "name": "reference-search",
+    "kind": "search",
+    "body": "<!doctype html><title>Search - Anna’s Archive</title>\n<form action=\"/search\"><input name=\"q\"></form>\n<div><a href=\"/md5/11111111111111111111111111111111\" class=\"js-vim-focus\">\n  <div><img src=\"/covers/one.jpg\"></div>\n  <div><div class=\"text-gray-500\">English [en], epub, 1.2MB, Book (fiction)</div>\n    <h3 class=\"font-bold\">Pride &amp; Prejudice</h3>\n    <div>Example Press, 1813</div><div class=\"italic\">Jane Austen</div>\n    <div class=\"hidden\">base score: 99</div></div>\n</a></div>\n<div class=\"js-scroll-hidden\"><!--\n<a href=\"/md5/22222222222222222222222222222222\" class=\"js-vim-focus\">\n  <div><div class=\"text-gray-500\">中文 [zh], pdf, 5.6 MB</div>\n    <h3 class=\"font-bold\">傲慢与偏见</h3><div>示例出版社</div>\n    <div class=\"italic\">简·奥斯汀</div></div>\n</a>--></div>\n<a href=\"/md5/11111111111111111111111111111111\"><h3>Duplicate</h3></a>\n<!-- <a href=\"/md5/33333333333333333333333333333333\"><h3>Not a live result</h3></a> -->\n"
+  },
+  {
+    "name": "reference-search-current",
+    "kind": "search",
+    "body": "<!-- Reduced from a public search response on 2026-09-12. -->\n<div class=\"flex pt-3 pb-3 border-b last:border-b-0 border-gray-100\">\n<a class=\"custom-a block mr-2 sm:mr-4 hover:opacity-80\" href=\"/md5/51d2b22ca12a8b470b51f543298b34c9\">\n<div class=\"w-20 h-[7.5rem] sm:w-24 sm:h-36 rounded shadow relative overflow-hidden text-left\" id=\"list_cover_aarecord_id__md5:51d2b22ca12a8b470b51f543298b34c9\">\n<img alt=\"\" class=\"w-full h-full object-cover transition-transform relative z-10 rounded\" decoding=\"async\" loading=\"lazy\" onerror=\"this.parentNode.querySelector('.js-aarecord-list-fallback-cover').classList.remove('hidden'); this.parentNode.removeChild(this)\" referrerpolicy=\"no-referrer\" src=\"\"/>\n<div class=\"absolute top-0 left-0 w-full h-full p-2 flex flex-col text-[7pt] leading-[1.1] break-words overflow-hidden select-none hidden js-aarecord-list-fallback-cover\" style=\"background-color: hsl(330, 60%, 90%)\">\n<div class=\"font-bold text-violet-900 line-clamp-[5]\" data-content=\"Pride and Prejudice\"></div>\n<div class=\"font-bold text-amber-900 line-clamp-[2] mt-2\" data-content=\"Austen, Jane\"></div>\n</div>\n</div>\n</a>\n<div class=\"max-w-full overflow-hidden flex flex-col justify-around\">\n<div>\n<div class=\"line-clamp-[2] overflow-hidden break-words text-[9px] text-gray-500 font-mono\">lgli/Jane Austen - Pride and Prejudice (1998, Project Gutenberg).epub</div>\n<a class=\"line-clamp-[3] overflow-hidden break-words js-vim-focus custom-a text-[#2563eb] inline-block outline-offset-[-2px] outline-2 rounded-[3px] focus:outline font-semibold text-lg leading-[1.2] hover:opacity-80 mt-1\" href=\"/md5/51d2b22ca12a8b470b51f543298b34c9\">Pride and Prejudice</a><a class=\"line-clamp-[2] overflow-hidden break-words block custom-a text-sm hover:opacity-70 leading-[1.2] mt-1\" href=\"/search?q=Austen, Jane\"><span class=\"icon-[mdi--user-edit] text-base align-sub\"></span> Austen, Jane</a><a class=\"line-clamp-[2] overflow-hidden break-words block custom-a text-sm hover:opacity-70 leading-[1.2] mt-1\" href=\"/search?q=Project Gutenberg\"><span class=\"icon-[mdi--company] text-base align-sub\"></span> Project Gutenberg, 1998</a> </div>\n<div>\n<div class=\"line-clamp-[5]\"></div><!-- Only to make sure Tailwind generates it -->\n</div>\n<div class=\"text-gray-800 dark:text-slate-400 font-semibold text-sm leading-[1.2] mt-2\">English [en] · EPUB · 0.3MB · 1998 · 📘 Book (non-fiction) · 🚀/lgli/zlib    · <a class=\"custom-a text-[#2563eb] inline-block outline-offset-[-2px] outline-2 rounded-[3px] focus:outline font-semibold text-sm leading-none hover:opacity-80 relative\" href=\"#\"><span class=\"text-[15px] align-text-bottom inline-block icon-[pepicons-pencil--bookmark-filled] mr-[1px]\"></span><!--TODO:TRANSLATE-->Save</a>\n<span class=\"text-xs text-gray-500\"></span>\n</div>\n<div class=\"hidden\">base score: 11055.0, final score: 1.6736795</div>\n</div>\n</div>\n"
+  },
+  {
+    "name": "reference-info",
+    "kind": "detail",
+    "body": "<!doctype html><title>Pride &amp; Prejudice - Anna’s Archive</title>\n<div><img src=\"/covers/one.jpg\"><div class=\"js-cover-background\"></div></div>\n<div>\n  <div class=\"text-sm text-gray-500\">English [en], epub, 1.2MB</div>\n  <div class=\"text-3xl font-bold\">Pride &amp; Prejudice<span class=\"select-none\"><a>🔍</a></span></div>\n  <div class=\"text-md\">Example Press, 1813</div>\n  <div class=\"italic\">Jane Austen<span class=\"select-none\">🔍</span></div>\n  <div class=\"js-md5-top-box-description\"><div>Description</div><div>A novel.</div></div>\n</div>\n<div id=\"md5-panel-downloads\">\n  <a class=\"js-download-link\" href=\"/fast_download/11111111111111111111111111111111/0/0\">Fast partner</a>\n  <a class=\"js-download-link\" href=\"/slow_download/11111111111111111111111111111111/0/0\">Slow partner</a>\n  <a class=\"js-download-link\" href=\"https://files.example/book.epub\">External source</a>\n  <a class=\"js-download-link\" href=\"https://files.example/book.epub\">Duplicate</a>\n  <a href=\"/faq\">Help</a><a class=\"js-download-link\" href=\"javascript:alert(1)\">Invalid</a>\n</div>\n"
+  },
+  {
+    "name": "reference-info-current",
+    "kind": "detail",
+    "body": "<!-- Reduced from a public record response on 2026-09-12. -->\n<div class=\"mb-4 p-6 overflow-hidden bg-white break-words rounded-lg shadow-lg\">\n<div class=\"sm:float-right text-center sm:text-right sm:ml-4 pb-4 relative\">\n<div class=\"relative inline-block\" id=\"cover_aarecord_id__md5:51d2b22ca12a8b470b51f543298b34c9\">\n<div class=\"w-[150px] h-[225px] sm:w-[220px] sm:h-[330px] rounded-lg shadow-lg relative overflow-hidden text-left\" id=\"list_cover_aarecord_id__md5:51d2b22ca12a8b470b51f543298b34c9\">\n<img alt=\"\" class=\"w-full h-full object-cover transition-transform relative z-10 rounded\" decoding=\"async\" loading=\"lazy\" onerror=\"this.parentNode.querySelector('.js-aarecord-list-fallback-cover').classList.remove('hidden'); this.parentNode.removeChild(this)\" referrerpolicy=\"no-referrer\" src=\"\"/>\n<div class=\"absolute top-0 left-0 w-full h-full p-2 flex flex-col text-sm sm:text-base leading-[1.1] break-words overflow-hidden select-none hidden js-aarecord-list-fallback-cover\" style=\"background-color: hsl(330, 60%, 90%)\">\n<div class=\"font-bold text-violet-900 line-clamp-[5]\" data-content=\"Pride and Prejudice\"></div>\n<div class=\"font-bold text-amber-900 line-clamp-[2] mt-2\" data-content=\"Austen, Jane\"></div>\n</div>\n</div>\n</div>\n<div class=\"block mt-2 text-xs\">\n<a href=\"/metadata\">Improve metadata</a> / \n          <!-- TODO: don't show this report button on metadata-only records -->\n<a href=\"#md5-tab-discussion\" onclick=\"document.querySelector('#md5-tab-discussion').click();\"> Report file quality</a>\n</div>\n</div>\n\n<div class=\"overflow-hidden break-words text-[10px] text-gray-500 font-mono\"><a class=\"custom-a hover:text-white hover:bg-[#555]\" href=\"/codes?prefix_b64=ZmlsZXBhdGg6bGdsaS8=\">lgli/</a><a class=\"custom-a hover:text-white hover:bg-[#555]\" href=\"/codes?prefix_b64=ZmlsZXBhdGg6bGdsaS9KYW5lIEF1c3RlbiAtIFByaWRlIGFuZCBQcmVqdWRpY2UgKDE5OTgsIFByb2plY3QgR3V0ZW5iZXJnKS5lcHVi\">Jane Austen - Pride and Prejudice (1998, Project Gutenberg).epub</a></div>\n<div class=\"font-semibold text-2xl leading-[1.2] mt-2\">Pride and Prejudice<span class=\"select-none\"> <a class=\"custom-a text-xs align-[2px] opacity-70 hover:opacity-100\" href=\"/search?q=Pride%20and%20Prejudice\">🔍</a></span></div>\n<a class=\"line-clamp-[2] overflow-hidden break-words block custom-a text-base hover:opacity-70 leading-[1.2] mt-2\" href=\"/search?q=Austen, Jane\"><span class=\"icon-[mdi--user-edit] text-base align-[-3px]\"></span> Austen, Jane</a>\n<a class=\"line-clamp-[2] overflow-hidden break-words block custom-a text-base hover:opacity-70 leading-[1.2] mt-2\" href=\"/search?q=Project Gutenberg\"><span class=\"icon-[mdi--company] text-base align-[-3px]\"></span> Project Gutenberg, 1998</a>\n<div class=\"text-gray-800 dark:text-slate-400 font-semibold text-sm leading-[1.2] mt-4\">English [en] · EPUB · 0.3MB · 1998 · 📘 Book (non-fiction) · 🚀/lgli/zlib    · <a class=\"custom-a text-[#2563eb] inline-block outline-offset-[-2px] outline-2 rounded-[3px] focus:outline font-semibold text-sm leading-none hover:opacity-80 relative\" href=\"#\"><span class=\"text-[15px] align-text-bottom inline-block icon-[pepicons-pencil--bookmark-filled] mr-[1px]\"></span><!--TODO:TRANSLATE-->Save</a>\n<span class=\"text-xs text-gray-500\"></span>\n</div>\n<div class=\"mt-4 line-clamp-[10] js-md5-top-box-description\"><div class=\"text-xs text-gray-500 uppercase\">Alternative filename</div><div class=\"mb-1\">zlib/Self-Help, Relationships &amp; Lifestyle/Families &amp; Parents/Jane Austen/Pride and Prejudice_16894122.epub</div><div class=\"text-xs text-gray-500 uppercase\">Alternative author</div><div class=\"mb-1\">Jane Austen</div><div class=\"text-xs text-gray-500 uppercase\">date open sourced</div><div class=\"mb-1\">2021-08-02</div></div>\n\n\n<a class=\"mt-4 js-md5-top-box-description-link text-sm\" href=\"#\" onclick=\"document.querySelector('.js-md5-top-box-description').classList.remove('line-clamp-[10]'); document.querySelector('.js-md5-codes-container').classList.remove('hidden'); this.parentNode.removeChild(this); event.preventDefault(); return false;\">Read more…</a>\n</div>\n<a class=\"js-download-link\" href=\"/fast_download/51d2b22ca12a8b470b51f543298b34c9/0/0\" rel=\"noopener noreferrer nofollow\">Fast Partner Server #1 ⭐️</a>\n<a class=\"js-download-link\" href=\"/slow_download/51d2b22ca12a8b470b51f543298b34c9/0/0\" rel=\"noopener noreferrer nofollow\">Slow Partner Server #1</a>\n<a class=\"js-download-link\" href=\"https://z-library.sk/md5/51d2b22ca12a8b470b51f543298b34c9\" rel=\"noopener noreferrer nofollow\" target=\"_blank\">Z-Library</a>\n"
+  },
+  {
+    "name": "empty-No results found",
+    "kind": "search",
+    "body": "<p>No results found</p>"
+  },
+  {
+    "name": "empty-No files found",
+    "kind": "search",
+    "body": "<p>No files found</p>"
+  },
+  {
+    "name": "empty-没有找到",
+    "kind": "search",
+    "body": "<p>没有找到</p>"
+  },
+  {
+    "name": "unknown-layout",
+    "kind": "search",
+    "body": "<main>Unexpected page</main>"
+  },
+  {
+    "name": "challenge-classification",
+    "kind": "error",
+    "status": 403,
+    "body": "<title>Just a moment</title>"
+  },
+  {
+    "name": "plain-denial",
+    "kind": "error",
+    "status": 403,
+    "body": "Access denied"
+  },
+  {
+    "name": "auth",
+    "kind": "error",
+    "status": 401,
+    "body": ""
+  },
+  {
+    "name": "unavailable",
+    "kind": "error",
+    "status": 503,
+    "body": ""
+  },
+  {
+    "name": "rate-limit",
+    "kind": "error",
+    "status": 429,
+    "body": ""
+  },
+  {
+    "name": "landing-signed",
+    "kind": "landing",
+    "body": "<a download href='https://files.example.invalid/book.cbz?signature=a%2Bb%3D'>Download</a>"
+  },
+  {
+    "name": "landing-relative",
+    "kind": "landing",
+    "body": "<a id='download' href='/file/book.cbz?key=a%2Bb'>Get</a>"
+  },
+  {
+    "name": "landing-label",
+    "kind": "landing",
+    "body": "<a href='/file/book.cbz'>📚 Download now</a>"
+  },
+  {
+    "name": "landing-countdown",
+    "kind": "landing",
+    "body": "<span class='js-partner-countdown'>17</span>"
+  },
+  {
+    "name": "request-unicode",
+    "kind": "request",
+    "query": "中文 & Example",
+    "filters": {
+      "lang": "en",
+      "ext": "cbz"
+    }
+  },
+  {
+    "name": "request-page-two",
+    "kind": "request",
+    "query": "Example",
+    "filters": {
+      "page": 2
+    }
+  },
+  {
+    "name": "request-multi-filter",
+    "kind": "request",
+    "query": "Example",
+    "filters": {
+      "lang": [
+        "en",
+        "fr"
+      ],
+      "ext": [
+        "cbz",
+        "epub"
+      ],
+      "content": [
+        "book_fiction"
+      ],
+      "sort": "newest",
+      "page": 3
+    }
+  },
+  {
+    "name": "comic-edition",
+    "kind": "search",
+    "body": "<a href=\"/md5/33333333333333333333333333333333\"><div class=\"text-gray-500\">English [en], CBZ, 12 MB</div><h3>Example Comic #001 (2020) (Digital)</h3><div>Example Press, 2020</div><div class=\"italic\">Example Author</div></a>"
+  },
+  {
+    "name": "comic-mobile",
+    "kind": "search",
+    "body": "<a href=\"/md5/33333333333333333333333333333333\"><div class=\"text-gray-500\">French [fr], CBR, 4.2 MB</div><h3>Example Comic 002 (2021) (Mobile Edition)</h3><div>Example Press, 2020</div><div class=\"italic\">Example Author</div></a>"
+  },
+  {
+    "name": "metadata-format",
+    "kind": "search",
+    "body": "<a href=\"/md5/33333333333333333333333333333333\"><div class=\"text-gray-500\">English [en], DOCX, 1.5 MB</div><h3>Public fixture</h3><div>Example Press, 2020</div><div class=\"italic\">Example Author</div></a>"
+  },
+  {
+    "name": "normal-redirect",
+    "kind": "redirect",
+    "body": "<p>No results found</p>"
+  },
+  {
+    "name": "local-cooldown",
+    "kind": "cooldown",
+    "status": 200,
+    "body": "<p>No results found</p>"
+  },
+  {
+    "name": "server-cooldown",
+    "kind": "cooldown",
+    "status": 429,
+    "body": ""
+  },
+  {
+    "name": "landing-login",
+    "kind": "landing",
+    "body": "<input type=\"password\">"
+  },
+  {
+    "name": "landing-unknown",
+    "kind": "landing",
+    "body": "<p>Unexpected</p>"
+  },
+  {
+    "name": "landing-invalid-countdown",
+    "kind": "landing",
+    "body": "<span class=\"js-partner-countdown\">invalid</span>"
+  },
+  {
+    "name": "input-limit",
+    "kind": "request",
+    "query": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "filters": {}
+  },
+  {
+    "name": "parked-domain",
+    "kind": "search",
+    "body": "<p>This domain may be for sale</p>"
+  },
+  {
+    "name": "result-bound",
+    "kind": "search",
+    "body": "<a href=\"/md5/00000000000000000000000000000001\"><h3>Example Comic 001 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000002\"><h3>Example Comic 002 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000003\"><h3>Example Comic 003 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000004\"><h3>Example Comic 004 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000005\"><h3>Example Comic 005 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000006\"><h3>Example Comic 006 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000007\"><h3>Example Comic 007 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000008\"><h3>Example Comic 008 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000009\"><h3>Example Comic 009 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000000a\"><h3>Example Comic 010 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000000b\"><h3>Example Comic 011 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000000c\"><h3>Example Comic 012 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000000d\"><h3>Example Comic 013 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000000e\"><h3>Example Comic 014 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000000f\"><h3>Example Comic 015 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000010\"><h3>Example Comic 016 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000011\"><h3>Example Comic 017 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000012\"><h3>Example Comic 018 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000013\"><h3>Example Comic 019 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000014\"><h3>Example Comic 020 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000015\"><h3>Example Comic 021 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000016\"><h3>Example Comic 022 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000017\"><h3>Example Comic 023 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000018\"><h3>Example Comic 024 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000019\"><h3>Example Comic 025 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000001a\"><h3>Example Comic 026 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000001b\"><h3>Example Comic 027 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000001c\"><h3>Example Comic 028 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000001d\"><h3>Example Comic 029 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000001e\"><h3>Example Comic 030 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000001f\"><h3>Example Comic 031 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000020\"><h3>Example Comic 032 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000021\"><h3>Example Comic 033 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000022\"><h3>Example Comic 034 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000023\"><h3>Example Comic 035 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000024\"><h3>Example Comic 036 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000025\"><h3>Example Comic 037 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000026\"><h3>Example Comic 038 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000027\"><h3>Example Comic 039 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000028\"><h3>Example Comic 040 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000029\"><h3>Example Comic 041 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000002a\"><h3>Example Comic 042 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000002b\"><h3>Example Comic 043 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000002c\"><h3>Example Comic 044 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000002d\"><h3>Example Comic 045 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000002e\"><h3>Example Comic 046 (2020)</h3></a><a href=\"/md5/0000000000000000000000000000002f\"><h3>Example Comic 047 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000030\"><h3>Example Comic 048 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000031\"><h3>Example Comic 049 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000032\"><h3>Example Comic 050 (2020)</h3></a><a href=\"/md5/00000000000000000000000000000033\"><h3>Example Comic 051 (2020)</h3></a>"
+  },
+  {
+    "name": "http-source",
+    "kind": "detail",
+    "body": "<div><div class=\"text-gray-500\">English [en], CBZ</div><div class=\"text-3xl\">Example Comic</div><div>Example Press</div><div>Example Author</div></div><a class=\"js-download-link\" href=\"http://files.example.invalid/comic.cbz\">Plain HTTP</a>"
+  },
+  {
+    "name": "request-relevance",
+    "kind": "request",
+    "query": "Example",
+    "filters": {
+      "sort": "relevance",
+      "page": 1
+    }
+  },
+  {
+    "name": "canonical-record-links",
+    "kind": "search",
+    "body": "<a href=\"https://catalog.example.invalid/md5/44444444444444444444444444444444?view=details\"><h3>Example Comic 004 (2020)</h3></a><a href=\"/md5/55555555555555555555555555555555?view=details\"><h3>Example Comic 005 (2020)</h3></a>"
+  }
+]

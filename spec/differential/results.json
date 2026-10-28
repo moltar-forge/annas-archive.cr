@@ -1,0 +1,1839 @@
+{
+  "reference_commit": "001ab3250e9cd829e7225b6385e3fb8aac999090",
+  "shard_baseline": "de06ffac01269ed239ccf5b7ceec9a63f6e9c1c9",
+  "network": "disabled; fixtures only; challenge-retry and downloader methods disabled",
+  "rows": [
+    {
+      "name": "reference-search",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "reference-search",
+        "value": [
+          {
+            "md5": "11111111111111111111111111111111",
+            "url": "https://catalog.example.invalid/md5/11111111111111111111111111111111",
+            "title": "Pride & Prejudice",
+            "language": "en",
+            "format": "epub",
+            "summary": "English [en], epub, 1.2MB, Book (fiction)",
+            "author": "Jane Austen",
+            "publisher": "Example Press, 1813",
+            "size": "1.2MB",
+            "cover_url": "https://catalog.example.invalid/covers/one.jpg",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "22222222222222222222222222222222",
+            "url": "https://catalog.example.invalid/md5/22222222222222222222222222222222",
+            "title": "傲慢与偏见",
+            "language": "zh",
+            "format": "pdf",
+            "summary": "中文 [zh], pdf, 5.6 MB",
+            "author": "简·奥斯汀",
+            "publisher": "示例出版社",
+            "size": "5.6 MB",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      },
+      "crystal": {
+        "name": "reference-search",
+        "value": [
+          {
+            "md5": "11111111111111111111111111111111",
+            "url": "https://catalog.example.invalid/md5/11111111111111111111111111111111",
+            "title": "Pride & Prejudice",
+            "language": "en",
+            "format": "epub",
+            "summary": "English [en], epub, 1.2MB, Book (fiction)",
+            "author": "Jane Austen",
+            "publisher": "Example Press, 1813",
+            "size": "1.2MB",
+            "cover_url": "https://catalog.example.invalid/covers/one.jpg",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "22222222222222222222222222222222",
+            "url": "https://catalog.example.invalid/md5/22222222222222222222222222222222",
+            "title": "傲慢与偏见",
+            "language": "zh",
+            "format": "pdf",
+            "summary": "中文 [zh], pdf, 5.6 MB",
+            "author": "简·奥斯汀",
+            "publisher": "示例出版社",
+            "size": "5.6 MB",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "reference-search-current",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "reference-search-current",
+        "value": [
+          {
+            "md5": "51d2b22ca12a8b470b51f543298b34c9",
+            "url": "https://catalog.example.invalid/md5/51d2b22ca12a8b470b51f543298b34c9",
+            "title": "Pride and Prejudice",
+            "language": "en",
+            "format": "epub",
+            "summary": "English [en] · EPUB · 0.3MB · 1998 · 📘 Book (non-fiction) · 🚀/lgli/zlib",
+            "author": "Austen, Jane",
+            "publisher": "Project Gutenberg, 1998",
+            "size": "0.3MB",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      },
+      "crystal": {
+        "name": "reference-search-current",
+        "value": [
+          {
+            "md5": "51d2b22ca12a8b470b51f543298b34c9",
+            "url": "https://catalog.example.invalid/md5/51d2b22ca12a8b470b51f543298b34c9",
+            "title": "Pride and Prejudice",
+            "language": "en",
+            "format": "epub",
+            "summary": "English [en] · EPUB · 0.3MB · 1998 · 📘 Book (non-fiction) · 🚀/lgli/zlib",
+            "author": "Austen, Jane",
+            "publisher": "Project Gutenberg, 1998",
+            "size": "0.3MB",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "reference-info",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "reference-info",
+        "value": {
+          "md5": "11111111111111111111111111111111",
+          "url": "https://catalog.example.invalid/md5/11111111111111111111111111111111",
+          "title": "Pride & Prejudice",
+          "language": "en",
+          "format": "epub",
+          "summary": "English [en], epub, 1.2MB",
+          "author": "Jane Austen",
+          "publisher": "Example Press, 1813",
+          "size": "1.2MB",
+          "cover_url": "https://catalog.example.invalid/covers/one.jpg",
+          "description": "Description A novel.",
+          "links": [
+            {
+              "url": "https://catalog.example.invalid/fast_download/11111111111111111111111111111111/0/0",
+              "kind": "member",
+              "label": "Fast partner"
+            },
+            {
+              "url": "https://catalog.example.invalid/slow_download/11111111111111111111111111111111/0/0",
+              "kind": "browser",
+              "label": "Slow partner"
+            },
+            {
+              "url": "https://files.example/book.epub",
+              "kind": "external",
+              "label": "External source"
+            }
+          ]
+        }
+      },
+      "crystal": {
+        "name": "reference-info",
+        "value": {
+          "md5": "11111111111111111111111111111111",
+          "url": "https://catalog.example.invalid/md5/11111111111111111111111111111111",
+          "title": "Pride & Prejudice",
+          "language": "en",
+          "format": "epub",
+          "summary": "English [en], epub, 1.2MB",
+          "author": "Jane Austen",
+          "publisher": "Example Press, 1813",
+          "size": "1.2MB",
+          "cover_url": "https://catalog.example.invalid/covers/one.jpg",
+          "description": "Description A novel.",
+          "links": [
+            {
+              "url": "https://catalog.example.invalid/fast_download/11111111111111111111111111111111/0/0",
+              "kind": "member",
+              "label": "Fast partner"
+            },
+            {
+              "url": "https://catalog.example.invalid/slow_download/11111111111111111111111111111111/0/0",
+              "kind": "browser",
+              "label": "Slow partner"
+            },
+            {
+              "url": "https://files.example/book.epub",
+              "kind": "external",
+              "label": "External source"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "reference-info-current",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "reference-info-current",
+        "value": {
+          "md5": "11111111111111111111111111111111",
+          "url": "https://catalog.example.invalid/md5/11111111111111111111111111111111",
+          "title": "Pride and Prejudice",
+          "language": "en",
+          "format": "epub",
+          "summary": "English [en] · EPUB · 0.3MB · 1998 · 📘 Book (non-fiction) · 🚀/lgli/zlib",
+          "author": "Austen, Jane",
+          "publisher": "Project Gutenberg, 1998",
+          "size": "0.3MB",
+          "cover_url": "",
+          "description": "Alternative filename zlib/Self-Help, Relationships & Lifestyle/Families & Parents/Jane Austen/Pride and Prejudice_16894122.epub Alternative author Jane Austen date open sourced 2021-08-02",
+          "links": [
+            {
+              "url": "https://catalog.example.invalid/fast_download/51d2b22ca12a8b470b51f543298b34c9/0/0",
+              "kind": "member",
+              "label": "Fast Partner Server #1 ⭐️"
+            },
+            {
+              "url": "https://catalog.example.invalid/slow_download/51d2b22ca12a8b470b51f543298b34c9/0/0",
+              "kind": "browser",
+              "label": "Slow Partner Server #1"
+            },
+            {
+              "url": "https://z-library.sk/md5/51d2b22ca12a8b470b51f543298b34c9",
+              "kind": "external",
+              "label": "Z-Library"
+            }
+          ]
+        }
+      },
+      "crystal": {
+        "name": "reference-info-current",
+        "value": {
+          "md5": "11111111111111111111111111111111",
+          "url": "https://catalog.example.invalid/md5/11111111111111111111111111111111",
+          "title": "Pride and Prejudice",
+          "language": "en",
+          "format": "epub",
+          "summary": "English [en] · EPUB · 0.3MB · 1998 · 📘 Book (non-fiction) · 🚀/lgli/zlib",
+          "author": "Austen, Jane",
+          "publisher": "Project Gutenberg, 1998",
+          "size": "0.3MB",
+          "cover_url": "",
+          "description": "Alternative filename zlib/Self-Help, Relationships & Lifestyle/Families & Parents/Jane Austen/Pride and Prejudice_16894122.epub Alternative author Jane Austen date open sourced 2021-08-02",
+          "links": [
+            {
+              "url": "https://catalog.example.invalid/fast_download/51d2b22ca12a8b470b51f543298b34c9/0/0",
+              "kind": "member",
+              "label": "Fast Partner Server #1 ⭐️"
+            },
+            {
+              "url": "https://catalog.example.invalid/slow_download/51d2b22ca12a8b470b51f543298b34c9/0/0",
+              "kind": "browser",
+              "label": "Slow Partner Server #1"
+            },
+            {
+              "url": "https://z-library.sk/md5/51d2b22ca12a8b470b51f543298b34c9",
+              "kind": "external",
+              "label": "Z-Library"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "empty-No results found",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "empty-No results found",
+        "value": []
+      },
+      "crystal": {
+        "name": "empty-No results found",
+        "value": []
+      }
+    },
+    {
+      "name": "empty-No files found",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "empty-No files found",
+        "value": []
+      },
+      "crystal": {
+        "name": "empty-No files found",
+        "value": []
+      }
+    },
+    {
+      "name": "empty-没有找到",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "empty-没有找到",
+        "value": []
+      },
+      "crystal": {
+        "name": "empty-没有找到",
+        "value": []
+      }
+    },
+    {
+      "name": "unknown-layout",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "unknown-layout",
+        "error": "unrecognized_page"
+      },
+      "crystal": {
+        "name": "unknown-layout",
+        "error": "unrecognized_page"
+      }
+    },
+    {
+      "name": "challenge-classification",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "challenge-classification",
+        "error": "browser_verification_required"
+      },
+      "crystal": {
+        "name": "challenge-classification",
+        "error": "browser_verification_required"
+      }
+    },
+    {
+      "name": "plain-denial",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "plain-denial",
+        "error": "access_denied"
+      },
+      "crystal": {
+        "name": "plain-denial",
+        "error": "access_denied"
+      }
+    },
+    {
+      "name": "auth",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "auth",
+        "error": "authentication_required"
+      },
+      "crystal": {
+        "name": "auth",
+        "error": "authentication_required"
+      }
+    },
+    {
+      "name": "unavailable",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "unavailable",
+        "error": "unavailable"
+      },
+      "crystal": {
+        "name": "unavailable",
+        "error": "unavailable"
+      }
+    },
+    {
+      "name": "rate-limit",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "rate-limit",
+        "error": "rate_limited"
+      },
+      "crystal": {
+        "name": "rate-limit",
+        "error": "rate_limited"
+      }
+    },
+    {
+      "name": "landing-signed",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "landing-signed",
+        "value": {
+          "url": "https://files.example.invalid/book.cbz?signature=a%2Bb%3D",
+          "wait_seconds": null
+        }
+      },
+      "crystal": {
+        "name": "landing-signed",
+        "value": {
+          "url": "https://files.example.invalid/book.cbz?signature=a%2Bb%3D",
+          "wait_seconds": null
+        }
+      }
+    },
+    {
+      "name": "landing-relative",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "landing-relative",
+        "value": {
+          "url": "https://catalog.example.invalid/file/book.cbz?key=a%2Bb",
+          "wait_seconds": null
+        }
+      },
+      "crystal": {
+        "name": "landing-relative",
+        "value": {
+          "url": "https://catalog.example.invalid/file/book.cbz?key=a%2Bb",
+          "wait_seconds": null
+        }
+      }
+    },
+    {
+      "name": "landing-label",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "landing-label",
+        "value": {
+          "url": "https://catalog.example.invalid/file/book.cbz",
+          "wait_seconds": null
+        }
+      },
+      "crystal": {
+        "name": "landing-label",
+        "value": {
+          "url": "https://catalog.example.invalid/file/book.cbz",
+          "wait_seconds": null
+        }
+      }
+    },
+    {
+      "name": "landing-countdown",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "landing-countdown",
+        "value": {
+          "url": null,
+          "wait_seconds": 17
+        }
+      },
+      "crystal": {
+        "name": "landing-countdown",
+        "value": {
+          "url": null,
+          "wait_seconds": 17
+        }
+      }
+    },
+    {
+      "name": "request-unicode",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "request-unicode",
+        "value": [
+          {
+            "path": "/search",
+            "params": [
+              [
+                "q",
+                "中文 & Example"
+              ],
+              [
+                "display",
+                ""
+              ],
+              [
+                "lang",
+                "en"
+              ],
+              [
+                "ext",
+                "cbz"
+              ]
+            ]
+          }
+        ]
+      },
+      "crystal": {
+        "name": "request-unicode",
+        "value": [
+          {
+            "path": "/search",
+            "params": [
+              [
+                "q",
+                "中文 & Example"
+              ],
+              [
+                "display",
+                ""
+              ],
+              [
+                "lang",
+                "en"
+              ],
+              [
+                "ext",
+                "cbz"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "request-page-two",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "request-page-two",
+        "value": [
+          {
+            "path": "/search",
+            "params": [
+              [
+                "q",
+                "Example"
+              ],
+              [
+                "display",
+                ""
+              ],
+              [
+                "page",
+                "2"
+              ]
+            ]
+          }
+        ]
+      },
+      "crystal": {
+        "name": "request-page-two",
+        "value": [
+          {
+            "path": "/search",
+            "params": [
+              [
+                "q",
+                "Example"
+              ],
+              [
+                "display",
+                ""
+              ],
+              [
+                "page",
+                "2"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "request-multi-filter",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "request-multi-filter",
+        "value": [
+          {
+            "path": "/search",
+            "params": [
+              [
+                "q",
+                "Example"
+              ],
+              [
+                "display",
+                ""
+              ],
+              [
+                "lang",
+                "en"
+              ],
+              [
+                "lang",
+                "fr"
+              ],
+              [
+                "ext",
+                "cbz"
+              ],
+              [
+                "ext",
+                "epub"
+              ],
+              [
+                "content",
+                "book_fiction"
+              ],
+              [
+                "sort",
+                "newest"
+              ],
+              [
+                "page",
+                "3"
+              ]
+            ]
+          }
+        ]
+      },
+      "crystal": {
+        "name": "request-multi-filter",
+        "value": [
+          {
+            "path": "/search",
+            "params": [
+              [
+                "q",
+                "Example"
+              ],
+              [
+                "display",
+                ""
+              ],
+              [
+                "lang",
+                "en"
+              ],
+              [
+                "lang",
+                "fr"
+              ],
+              [
+                "ext",
+                "cbz"
+              ],
+              [
+                "ext",
+                "epub"
+              ],
+              [
+                "content",
+                "book_fiction"
+              ],
+              [
+                "sort",
+                "newest"
+              ],
+              [
+                "page",
+                "3"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "comic-edition",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "comic-edition",
+        "value": [
+          {
+            "md5": "33333333333333333333333333333333",
+            "url": "https://catalog.example.invalid/md5/33333333333333333333333333333333",
+            "title": "Example Comic #001 (2020) (Digital)",
+            "language": "en",
+            "format": "cbz",
+            "summary": "English [en], CBZ, 12 MB",
+            "author": "Example Author",
+            "publisher": "Example Press, 2020",
+            "size": "12 MB",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      },
+      "crystal": {
+        "name": "comic-edition",
+        "value": [
+          {
+            "md5": "33333333333333333333333333333333",
+            "url": "https://catalog.example.invalid/md5/33333333333333333333333333333333",
+            "title": "Example Comic #001 (2020) (Digital)",
+            "language": "en",
+            "format": "cbz",
+            "summary": "English [en], CBZ, 12 MB",
+            "author": "Example Author",
+            "publisher": "Example Press, 2020",
+            "size": "12 MB",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "comic-mobile",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "comic-mobile",
+        "value": [
+          {
+            "md5": "33333333333333333333333333333333",
+            "url": "https://catalog.example.invalid/md5/33333333333333333333333333333333",
+            "title": "Example Comic 002 (2021) (Mobile Edition)",
+            "language": "fr",
+            "format": "cbr",
+            "summary": "French [fr], CBR, 4.2 MB",
+            "author": "Example Author",
+            "publisher": "Example Press, 2020",
+            "size": "4.2 MB",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      },
+      "crystal": {
+        "name": "comic-mobile",
+        "value": [
+          {
+            "md5": "33333333333333333333333333333333",
+            "url": "https://catalog.example.invalid/md5/33333333333333333333333333333333",
+            "title": "Example Comic 002 (2021) (Mobile Edition)",
+            "language": "fr",
+            "format": "cbr",
+            "summary": "French [fr], CBR, 4.2 MB",
+            "author": "Example Author",
+            "publisher": "Example Press, 2020",
+            "size": "4.2 MB",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "metadata-format",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "metadata-format",
+        "value": [
+          {
+            "md5": "33333333333333333333333333333333",
+            "url": "https://catalog.example.invalid/md5/33333333333333333333333333333333",
+            "title": "Public fixture",
+            "language": "en",
+            "format": "docx",
+            "summary": "English [en], DOCX, 1.5 MB",
+            "author": "Example Author",
+            "publisher": "Example Press, 2020",
+            "size": "1.5 MB",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      },
+      "crystal": {
+        "name": "metadata-format",
+        "value": [
+          {
+            "md5": "33333333333333333333333333333333",
+            "url": "https://catalog.example.invalid/md5/33333333333333333333333333333333",
+            "title": "Public fixture",
+            "language": "en",
+            "format": "docx",
+            "summary": "English [en], DOCX, 1.5 MB",
+            "author": "Example Author",
+            "publisher": "Example Press, 2020",
+            "size": "1.5 MB",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "normal-redirect",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "normal-redirect",
+        "value": {
+          "requests": [
+            "https://catalog.example.invalid/search?q=Example&display=",
+            "https://catalog.example.invalid/results?signature=a%2Bb"
+          ],
+          "count": 0
+        }
+      },
+      "crystal": {
+        "name": "normal-redirect",
+        "value": {
+          "requests": [
+            "https://catalog.example.invalid/search?q=Example&display=",
+            "https://catalog.example.invalid/results?signature=a%2Bb"
+          ],
+          "count": 0
+        }
+      }
+    },
+    {
+      "name": "local-cooldown",
+      "status": "intentional",
+      "reason": "The shard enforces a minimum request interval; Python does not.",
+      "python": {
+        "name": "local-cooldown",
+        "value": {
+          "request_count": 2,
+          "errors": []
+        }
+      },
+      "crystal": {
+        "name": "local-cooldown",
+        "value": {
+          "request_count": 1,
+          "errors": [
+            "rate_limited"
+          ]
+        }
+      }
+    },
+    {
+      "name": "server-cooldown",
+      "status": "intentional",
+      "reason": "The shard retains Retry-After across calls; Python reports it but does not throttle later calls.",
+      "python": {
+        "name": "server-cooldown",
+        "value": {
+          "request_count": 2,
+          "errors": [
+            "rate_limited",
+            "rate_limited"
+          ]
+        }
+      },
+      "crystal": {
+        "name": "server-cooldown",
+        "value": {
+          "request_count": 1,
+          "errors": [
+            "rate_limited",
+            "rate_limited"
+          ]
+        }
+      }
+    },
+    {
+      "name": "landing-login",
+      "status": "intentional",
+      "reason": "The shard distinguishes an authentication form from an unsupported landing page.",
+      "python": {
+        "name": "landing-login",
+        "error": "operation_failed"
+      },
+      "crystal": {
+        "name": "landing-login",
+        "error": "authentication_required"
+      }
+    },
+    {
+      "name": "landing-unknown",
+      "status": "intentional",
+      "reason": "The shard uses a specific closed resolution error instead of operation_failed.",
+      "python": {
+        "name": "landing-unknown",
+        "error": "operation_failed"
+      },
+      "crystal": {
+        "name": "landing-unknown",
+        "error": "unsupported_resolution"
+      }
+    },
+    {
+      "name": "landing-invalid-countdown",
+      "status": "intentional",
+      "reason": "The shard uses a specific closed layout error instead of operation_failed.",
+      "python": {
+        "name": "landing-invalid-countdown",
+        "error": "operation_failed"
+      },
+      "crystal": {
+        "name": "landing-invalid-countdown",
+        "error": "unrecognized_page"
+      }
+    },
+    {
+      "name": "input-limit",
+      "status": "intentional",
+      "reason": "The shard bounds query input before invoking the transport.",
+      "python": {
+        "name": "input-limit",
+        "value": [
+          {
+            "path": "/search",
+            "params": [
+              [
+                "q",
+                "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              ],
+              [
+                "display",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      "crystal": {
+        "name": "input-limit",
+        "error": "invalid_input"
+      }
+    },
+    {
+      "name": "parked-domain",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "parked-domain",
+        "error": "unrecognized_page"
+      },
+      "crystal": {
+        "name": "parked-domain",
+        "error": "unrecognized_page"
+      }
+    },
+    {
+      "name": "result-bound",
+      "status": "intentional",
+      "reason": "The shard bounds searches to 50 records per explicit page; Python parsing is unbounded.",
+      "python": {
+        "name": "result-bound",
+        "value": [
+          {
+            "md5": "00000000000000000000000000000001",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000001",
+            "title": "Example Comic 001 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000002",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000002",
+            "title": "Example Comic 002 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000003",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000003",
+            "title": "Example Comic 003 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000004",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000004",
+            "title": "Example Comic 004 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000005",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000005",
+            "title": "Example Comic 005 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000006",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000006",
+            "title": "Example Comic 006 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000007",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000007",
+            "title": "Example Comic 007 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000008",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000008",
+            "title": "Example Comic 008 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000009",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000009",
+            "title": "Example Comic 009 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000000a",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000000a",
+            "title": "Example Comic 010 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000000b",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000000b",
+            "title": "Example Comic 011 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000000c",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000000c",
+            "title": "Example Comic 012 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000000d",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000000d",
+            "title": "Example Comic 013 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000000e",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000000e",
+            "title": "Example Comic 014 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000000f",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000000f",
+            "title": "Example Comic 015 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000010",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000010",
+            "title": "Example Comic 016 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000011",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000011",
+            "title": "Example Comic 017 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000012",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000012",
+            "title": "Example Comic 018 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000013",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000013",
+            "title": "Example Comic 019 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000014",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000014",
+            "title": "Example Comic 020 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000015",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000015",
+            "title": "Example Comic 021 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000016",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000016",
+            "title": "Example Comic 022 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000017",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000017",
+            "title": "Example Comic 023 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000018",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000018",
+            "title": "Example Comic 024 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000019",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000019",
+            "title": "Example Comic 025 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000001a",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000001a",
+            "title": "Example Comic 026 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000001b",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000001b",
+            "title": "Example Comic 027 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000001c",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000001c",
+            "title": "Example Comic 028 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000001d",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000001d",
+            "title": "Example Comic 029 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000001e",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000001e",
+            "title": "Example Comic 030 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000001f",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000001f",
+            "title": "Example Comic 031 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000020",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000020",
+            "title": "Example Comic 032 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000021",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000021",
+            "title": "Example Comic 033 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000022",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000022",
+            "title": "Example Comic 034 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000023",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000023",
+            "title": "Example Comic 035 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000024",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000024",
+            "title": "Example Comic 036 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000025",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000025",
+            "title": "Example Comic 037 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000026",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000026",
+            "title": "Example Comic 038 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000027",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000027",
+            "title": "Example Comic 039 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000028",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000028",
+            "title": "Example Comic 040 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000029",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000029",
+            "title": "Example Comic 041 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000002a",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000002a",
+            "title": "Example Comic 042 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000002b",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000002b",
+            "title": "Example Comic 043 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000002c",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000002c",
+            "title": "Example Comic 044 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000002d",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000002d",
+            "title": "Example Comic 045 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000002e",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000002e",
+            "title": "Example Comic 046 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "0000000000000000000000000000002f",
+            "url": "https://catalog.example.invalid/md5/0000000000000000000000000000002f",
+            "title": "Example Comic 047 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000030",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000030",
+            "title": "Example Comic 048 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000031",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000031",
+            "title": "Example Comic 049 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000032",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000032",
+            "title": "Example Comic 050 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "00000000000000000000000000000033",
+            "url": "https://catalog.example.invalid/md5/00000000000000000000000000000033",
+            "title": "Example Comic 051 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      },
+      "crystal": {
+        "name": "result-bound",
+        "error": "result_limit"
+      }
+    },
+    {
+      "name": "http-source",
+      "status": "intentional",
+      "reason": "The shard excludes non-HTTPS source links; Python exposes HTTP metadata links.",
+      "python": {
+        "name": "http-source",
+        "value": {
+          "md5": "11111111111111111111111111111111",
+          "url": "https://catalog.example.invalid/md5/11111111111111111111111111111111",
+          "title": "Example Comic",
+          "language": "en",
+          "format": "cbz",
+          "summary": "English [en], CBZ",
+          "author": "Example Author",
+          "publisher": "Example Press",
+          "size": "",
+          "cover_url": "",
+          "description": "",
+          "links": [
+            {
+              "url": "http://files.example.invalid/comic.cbz",
+              "kind": "external",
+              "label": "Plain HTTP"
+            }
+          ]
+        }
+      },
+      "crystal": {
+        "name": "http-source",
+        "value": {
+          "md5": "11111111111111111111111111111111",
+          "url": "https://catalog.example.invalid/md5/11111111111111111111111111111111",
+          "title": "Example Comic",
+          "language": "en",
+          "format": "cbz",
+          "summary": "English [en], CBZ",
+          "author": "Example Author",
+          "publisher": "Example Press",
+          "size": "",
+          "cover_url": "",
+          "description": "",
+          "links": []
+        }
+      }
+    },
+    {
+      "name": "request-relevance",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "request-relevance",
+        "value": [
+          {
+            "path": "/search",
+            "params": [
+              [
+                "q",
+                "Example"
+              ],
+              [
+                "display",
+                ""
+              ],
+              [
+                "sort",
+                "relevance"
+              ],
+              [
+                "page",
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "crystal": {
+        "name": "request-relevance",
+        "value": [
+          {
+            "path": "/search",
+            "params": [
+              [
+                "q",
+                "Example"
+              ],
+              [
+                "display",
+                ""
+              ],
+              [
+                "sort",
+                "relevance"
+              ],
+              [
+                "page",
+                "1"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "canonical-record-links",
+      "status": "match",
+      "reason": null,
+      "python": {
+        "name": "canonical-record-links",
+        "value": [
+          {
+            "md5": "44444444444444444444444444444444",
+            "url": "https://catalog.example.invalid/md5/44444444444444444444444444444444",
+            "title": "Example Comic 004 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "55555555555555555555555555555555",
+            "url": "https://catalog.example.invalid/md5/55555555555555555555555555555555",
+            "title": "Example Comic 005 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      },
+      "crystal": {
+        "name": "canonical-record-links",
+        "value": [
+          {
+            "md5": "44444444444444444444444444444444",
+            "url": "https://catalog.example.invalid/md5/44444444444444444444444444444444",
+            "title": "Example Comic 004 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          },
+          {
+            "md5": "55555555555555555555555555555555",
+            "url": "https://catalog.example.invalid/md5/55555555555555555555555555555555",
+            "title": "Example Comic 005 (2020)",
+            "language": "",
+            "format": "",
+            "summary": "",
+            "author": "",
+            "publisher": "",
+            "size": "",
+            "cover_url": "",
+            "description": "",
+            "links": []
+          }
+        ]
+      }
+    }
+  ]
+}

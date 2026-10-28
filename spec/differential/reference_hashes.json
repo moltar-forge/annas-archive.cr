@@ -1,0 +1,6 @@
+{
+  "src/anna/__init__.py": "6c27b189342be4f842f13434c9829ad46f910758ca3a87ec9c8b718ba515c096",
+  "src/anna/client.py": "7c99bc2bb21c14746171e263b9154fac6b6f4e9531976669cd9d8e19b8e80a6d",
+  "src/anna/parsing.py": "8357696d86210b28abf21155a05f1c2a1ec1185f83c71d91c6be11942995b878",
+  "src/anna/errors.py": "56028044e614f9401ee1dd378f0e1e914b351dfb5fada3699f43e3dd379efe4f"
+}
