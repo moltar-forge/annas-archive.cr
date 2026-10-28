@@ -6,10 +6,11 @@ require "http/params"
 # Bounded metadata client with one-shot challenge compatibility retries.
 # The caller supplies its HTTP policy; no scripts or external runtime execute.
 module AnnasArchive
-  VERSION        = "0.3.0"
-  MAX_PAGE_BYTES = 1_048_576
-  MAX_RESULTS    =        50
-  CLOCK_ORIGIN   = Time.instant
+  VERSION          = "0.3.0"
+  MAX_PAGE_BYTES   = 1_048_576
+  MAX_RESULTS      =        50
+  MAX_RECORD_LINKS =       128
+  CLOCK_ORIGIN     = Time.instant
 
   class Error < Exception
     getter code : String
@@ -194,7 +195,7 @@ module AnnasArchive
         kind = uri.path.starts_with?("/fast_download/") ? "member" : uri.path.starts_with?("/slow_download/") ? "browser" : "external"
         label = text(anchor)
         links << Link.new(url, kind, label.empty? ? uri.host.not_nil! : label)
-        raise Error.new("result_limit") if links.size > 20
+        raise Error.new("result_limit") if links.size > MAX_RECORD_LINKS
       end
       Detail.new(entry(md5, text(title), summary).copy_with(author: author, publisher: publisher, cover_url: cover,
         url: URI.parse(origin).resolve("/md5/#{md5}").to_s), links, description)
