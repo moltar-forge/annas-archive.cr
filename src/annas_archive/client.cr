@@ -281,9 +281,21 @@ module AnnasArchive
       Parser.search(page("/search?#{params}"), @origin, limit)
     end
 
+    # Extract only the identifier; never fetch the supplied origin.
+    def self.record_id(value : String) : String
+      value = value.strip
+      return value.downcase if value.matches?(/\A[a-fA-F0-9]{32}\z/)
+      uri = URI.parse(value)
+      raise Error.new("invalid_input") if uri.user || uri.password || (uri.scheme && !uri.scheme.in?({"http", "https"})) || (uri.scheme && !uri.host) || (!uri.scheme && uri.host)
+      match = uri.path.match(/\A\/md5\/([a-fA-F0-9]{32})\/?\z/) || raise Error.new("invalid_input")
+      match[1].downcase
+    rescue URI::Error
+      raise Error.new("invalid_input")
+    end
+
     def detail(md5 : String) : Detail
-      raise Error.new("invalid_input") unless md5.matches?(/\A[a-fA-F0-9]{32}\z/)
-      Parser.detail(page("/md5/#{md5.downcase}"), md5.downcase, @origin)
+      md5 = Client.record_id(md5)
+      Parser.detail(page("/md5/#{md5}"), md5, @origin)
     end
 
     def resolve(url : String) : Resolution

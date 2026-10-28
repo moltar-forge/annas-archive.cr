@@ -5,19 +5,20 @@ require "openssl"
 
 module AnnasArchive
   class TransferContext
-    def initialize(timeout : Time::Span = 60.seconds, @cancelled : Proc(Bool) = -> { false })
+    def initialize(timeout : Time::Span = 60.seconds, @cancelled : Proc(Bool) = -> { false },
+                   @clock : Proc(Time::Span) = -> { Time.instant - CLOCK_ORIGIN })
       raise Error.new("invalid_input") unless timeout > Time::Span.zero && timeout <= 5.minutes
-      @deadline = Time.instant + timeout
+      @deadline = @clock.call + timeout
     end
 
     def check! : Nil
       raise Error.new("download_cancelled") if @cancelled.call
-      raise Error.new("download_timeout") if Time.instant >= @deadline
+      raise Error.new("download_timeout") if @clock.call >= @deadline
     end
 
     def remaining : Time::Span
       check!
-      @deadline - Time.instant
+      @deadline - @clock.call
     end
   end
 
@@ -40,7 +41,7 @@ module AnnasArchive
     end
   end
 
-  record StreamResponse, status : Int32, headers : HTTP::Headers, body : IO
+  record StreamResponse, status : Int32, headers : HTTP::Headers, body : IO, url : String? = nil
 
   abstract class StreamTransport
     abstract def open(url : String, context : TransferContext, &block : StreamResponse -> Nil) : Nil
@@ -192,7 +193,7 @@ module AnnasArchive
             redirect = PublicHTTPS.uri(current.resolve(locations.first).to_s)
             raise Error.new("download_redirect_blocked") unless redirect.not_nil!.host.try(&.downcase) == initial.host.try(&.downcase)
           else
-            yield response
+            yield response.copy_with(url: current.to_s)
           end
           nil
         end

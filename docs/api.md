@@ -223,3 +223,93 @@ Existing files and symlinks are never replaced. `download_publication_uncertain`
 means verified final bytes may exist after a sync/namespace failure; inspect that
 file rather than blindly retrying. Process termination or filesystem failure can leave a private partial;
 partials are never automatically resumed or treated as complete files.
+
+---
+
+# Verified acquisition (Batch A)
+
+`Acquisition.new(origin, transport = NativeHTTPTransport.new)`
+composes a persistent Client and Downloader on one transport/cookie session.
+Use only with content you are authorized to acquire. No live-service reliability
+or full Python parity is claimed.
+
+```crystal
+require "annas_archive"
+
+a = AnnasArchive::Acquisition.new("https://your-configured-mirror.example")
+a.record("/md5/0123456789abcdef0123456789abcdef", "/private/existing/book.epub",
+  format: "epub", max_wait: 300)
+a.download("https://public-file-host.example/signed-url", "/private/existing/file",
+  expected_md5: "0123456789abcdef0123456789abcdef")
+```
+
+## Inputs and selection
+
+Client.detail and Acquisition.record accept trimmed, case-insensitive bare MD5,
+relative /md5/<hash> paths (optional trailing slash), or HTTP(S) record URLs.
+Only the identifier is used: metadata always comes from the configured HTTPS
+origin, never the supplied origin. Credential-bearing URLs are rejected.
+A supplied expected_md5 must match a record identifier. Direct downloads always
+require expected_md5 (the same identifier forms are accepted).
+
+Record acquisition defaults to the first non-member HTTPS link in parser order.
+source: N selects a stable one-based index in Detail.links, including member
+links; invalid indices, no regular source, and checksum mismatch are terminal.
+No automatic mirror/source fallback occurs. Non-HTTPS informational link listing
+remains deferred; indices describe the existing parser's HTTPS-only list.
+
+Output is always explicit. Its parent must already exist, be caller-owned, and
+not group/world writable. Publication remains anchored, atomic and no-overwrite;
+partial files are removed on failure. format enables existing format/ZIP-CRC
+validation; without it the result is hash_only. progress receives cumulative
+bytes, not chunk deltas. A signed file is consumed once, never prefetched.
+
+## Scheduling, budgets, errors
+
+- One operation owns one TransferContext, created before metadata. Default total
+  timeout is 300 seconds; DownloadPolicy.timeout must be positive and at most
+  five minutes. It includes metadata, local pacing, countdowns, traversal,
+  transfer, verification and pre-publication checks; no stage resets it.
+- The additional max_wait (default 300, negative invalid) is an elapsed monotonic
+  allowance starting at acquisition of the chosen URL, after record metadata.
+  Network/pacing time during traversal consumes this allowance too. Countdown
+  delay is seconds+1 and must fit entirely. Zero/over-budget returns
+  download_wait_required with retry_after containing the parsed seconds.
+- Only exact configured-origin /slow_download/<lowercase-md5>/<n>/<n> (and its
+  one-shot encoded retry) countdowns may sleep. External countdowns never sleep.
+  wait_progress receives per-second remaining values then final 0 on successful
+  wait completion; interrupted waits need not emit 0.
+- Six attempts maximum; only countdowns start another attempt. A fourth ordinary
+  landing response cannot transition again (download_landing_limit). Cycles,
+  login, unknown/oversized pages and persistent challenges fail closed. Only one
+  same-origin slow challenge rewrite is allowed for a transfer; metadata retains
+  its existing one-shot check=%31 retry. No generic retries exist.
+- A persistent local minimum interval (30 seconds by default, configurable
+  1..3600) spaces configured-origin top-level opens, including compatibility
+  retries (redirect exchanges within an open keep native redirect semantics).
+  Scheduling sleeps in at-most-one-second slices, bounded by the total deadline.
+  Cancellation is checked before/after sleeps, callbacks, requests, and chunks.
+  Injected monotonic clock/sleeper must advance consistently; callbacks must not
+  block indefinitely. A nonadvancing sleeper fails with download_clock_stalled.
+  Calls on one coordinator are serialized; lock queue time
+  precedes operation start and is not charged to the operation deadline.
+- Server 429 is terminal, never automatically retried/slept. Retry-After cooldowns
+  persist across operations and are distinct from local pacing. Reuse the same
+  coordinator instead of constructing one to bypass cooldowns.
+- At most 64 top-level transport opens per operation. Native transport has at
+  most six exchanges per open (default four), so even redirects remain globally
+  bounded (384 exchanges maximum, default 256). HTML stays bounded to 1 MiB;
+  file, archive expansion, DNS, TLS and deadline limits remain enforced.
+
+Explicit HTML download controls may select another public HTTPS host, but HTTP
+redirects are still exact-host only. Every target goes through PublicHTTPS and
+the native public-DNS/TLS checks. HTTP/private addresses, ambient proxies, and
+network-policy bypasses remain prohibited. Query bytes are not decoded/rebuilt;
+relative controls are resolved without parsing signed queries into parameters.
+Injected transports must preserve the same network policy and context checks.
+
+## Deferred
+
+Batch B browser-cookie import/custom User-Agent, automatic naming/parent creation,
+and non-fetchable source metadata are not implemented here. CLI packaging,
+filter expansion and broader parity/exception decisions remain separate work.

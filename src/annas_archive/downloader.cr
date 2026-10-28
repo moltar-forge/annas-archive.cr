@@ -27,11 +27,12 @@ module AnnasArchive
       end
     end
 
-    @cooldowns = {} of String => Time::Instant
+    @cooldowns = {} of String => Time::Span
     @cooldown_lock = Mutex.new
 
     def initialize(@transport : StreamTransport = NativeHTTPTransport.new, @policy : DownloadPolicy = DownloadPolicy.new,
-                   @origin : String? = nil, @challenge_retries : Bool = true)
+                   @origin : String? = nil, @challenge_retries : Bool = true,
+                   @clock : Proc(Time::Span) = -> { Time.instant - CLOCK_ORIGIN })
       raise Error.new("invalid_input") unless @policy.max_bytes.in?(1_i64..2_147_483_648_i64) && @policy.max_uncompressed_bytes.in?(1_i64..2_147_483_648_i64) && @policy.max_entries.in?(1..65_535)
       if origin = @origin
         uri = PublicHTTPS.uri(origin)
@@ -48,12 +49,13 @@ module AnnasArchive
     end
 
     def download(url : String, destination : String, expected_md5 : String, format : String? = nil,
-                 cancelled : Proc(Bool) = -> { false }, progress : Proc(Int64, Nil)? = nil) : DownloadedFile
+                 cancelled : Proc(Bool) = -> { false }, progress : Proc(Int64, Nil)? = nil,
+                 shared_context : TransferContext? = nil, landing : Proc(String, String, String)? = nil) : DownloadedFile
       host = PublicHTTPS.uri(url).host.not_nil!.downcase
       check_cooldown!(host)
       raise Error.new("invalid_input") unless expected_md5.matches?(/\A[a-fA-F0-9]{32}\z/) && (!format || format.in?(%w[epub zip cbz docx pdf rar cbr]))
       published = false
-      context = TransferContext.new(@policy.timeout, cancelled)
+      context = shared_context || TransferContext.new(@policy.timeout, cancelled)
       context.check!
       parent = File.realpath(File.dirname(destination))
       name = File.basename(destination)
@@ -78,6 +80,9 @@ module AnnasArchive
       retried = false
       loop do
         begin
+          next_url = nil.as(String?)
+          host = PublicHTTPS.uri(transfer_url).host.not_nil!.downcase
+          check_cooldown!(host)
           @transport.open(transfer_url, context) do |response|
             inspect_challenge!(response.body, context) if response.status.in?({401, 403, 503})
             status!(response, host)
@@ -89,6 +94,10 @@ module AnnasArchive
             raise Error.new("download_size_limit") if length && length > @policy.max_bytes
             type = response.headers["Content-Type"]?.to_s.downcase
             if type.includes?("html")
+              if handler = landing
+                next_url = handler.call(read_page(response.body, context), response.url || transfer_url)
+                next
+              end
               inspect_challenge!(response.body, context)
               raise Error.new("download_invalid_response")
             end
@@ -97,6 +106,12 @@ module AnnasArchive
             count = response.body.read_greedy(prefix)
             raise Error.new("download_empty") if count == 0
             sniff = String.new(prefix[0, count]).scrub.lstrip("\uFEFF \t\r\n").downcase
+            if handler = landing
+              if ["<!doctype", "<html", "<head", "<script", "<body", "<title", "<form"].any? { |start| sniff.starts_with?(start) }
+                next_url = handler.call(read_page(response.body, context, String.new(prefix[0, count])), response.url || transfer_url)
+                next
+              end
+            end
             inspect_challenge!(response.body, context, String.new(prefix[0, count])) if ["<!doctype", "<html", "<head", "<script", "<body", "<title", "<form"].any? { |start| sniff.starts_with?(start) }
             raise Error.new("download_invalid_response") if ["<!doctype", "<html", "<head", "<script", "<body", "<title", "<form", "<?xml", "{\"", "{\n"].any? { |prefix| sniff.starts_with?(prefix) }
             buffer = prefix
@@ -113,13 +128,18 @@ module AnnasArchive
             raise Error.new("download_truncated") if length && total != length
             nil
           end
+          if target_url = next_url
+            PublicHTTPS.uri(target_url)
+            transfer_url = target_url
+            next
+          end
           break
         rescue ex : Error
           remember_cooldown!(host, ex.retry_after || 60) if ex.code == "rate_limited"
-          raise ex unless ex.code == "browser_verification_required" && total == 0 && !retried && @challenge_retries && slow_retry?(url)
+          raise ex unless ex.code == "browser_verification_required" && total == 0 && !retried && @challenge_retries && slow_retry?(transfer_url)
           retried = true
           context.check!
-          transfer_url = url.sub("/slow_download/", "/slow%5Fdownload/")
+          transfer_url = transfer_url.sub("/slow_download/", "/slow%5Fdownload/")
         end
       end
       context.check!
@@ -168,6 +188,20 @@ module AnnasArchive
         uri.path.matches?(/\A\/slow_download\/[a-f0-9]{32}\/\d+\/\d+\/?\z/)
     end
 
+    private def read_page(body : IO, context : TransferContext, prefix : String = "") : String
+      output = IO::Memory.new
+      output << prefix
+      buffer = Bytes.new(16_384)
+      loop do
+        context.check!
+        count = body.read(buffer)
+        break if count == 0
+        raise Error.new("page_too_large") if output.size + count > MAX_PAGE_BYTES
+        output.write(buffer[0, count])
+      end
+      output.to_s
+    end
+
     private def inspect_challenge!(body : IO, context : TransferContext, prefix : String = "") : Nil
       output = IO::Memory.new
       output << prefix
@@ -192,18 +226,18 @@ module AnnasArchive
 
     private def check_cooldown!(host : String) : Nil
       @cooldown_lock.synchronize do
-        @cooldowns.reject! { |_, until_at| until_at <= Time.instant }
+        @cooldowns.reject! { |_, until_at| until_at <= @clock.call }
         if until_at = @cooldowns[host]?
-          raise Error.new("rate_limited", Math.max((until_at - Time.instant).total_seconds.ceil.to_i, 1))
+          raise Error.new("rate_limited", Math.max((until_at - @clock.call).total_seconds.ceil.to_i, 1))
         end
       end
     end
 
     private def remember_cooldown!(host : String, delay : Int32) : Nil
       @cooldown_lock.synchronize do
-        @cooldowns.reject! { |_, until_at| until_at <= Time.instant }
+        @cooldowns.reject! { |_, until_at| until_at <= @clock.call }
         raise Error.new("download_cooldown_capacity") if @cooldowns.size >= 32 && !@cooldowns.has_key?(host)
-        @cooldowns[host] = Time.instant + Math.max(delay, 1).seconds
+        @cooldowns[host] = @clock.call + Math.max(delay, 1).seconds
       end
     end
 
