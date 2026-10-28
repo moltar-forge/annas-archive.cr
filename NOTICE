@@ -1,0 +1,7 @@
+Interface reference: https://github.com/meurz/annas-archive-cli
+Reference revision: 001ab3250e9cd829e7225b6385e3fb8aac999090
+Reference license: MIT, Copyright (c) 2026 Anna's Archive CLI contributors.
+
+The Crystal implementation and synthetic test fixtures were independently
+written. No Python source or upstream HTML fixtures are distributed here.
+The reference's challenge-related URL encoding retries are not implemented.
