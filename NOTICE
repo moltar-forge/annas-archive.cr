@@ -8,3 +8,6 @@ MIT-licensed reference repository. Its full license is retained beside them.
 The differential harness imports separately supplied, hash-pinned reference
 modules for offline comparisons; it does not distribute the Python CLI.
 The reference's challenge-related URL encoding retries are not implemented.
+
+The downloadable EPUB fixture is generated from original synthetic text and
+released under CC0-1.0. It contains no third-party ebook content.

@@ -1,0 +1,326 @@
+{
+  "reference_commit": "001ab3250e9cd829e7225b6385e3fb8aac999090",
+  "network": "none; identical synthetic EPUB and mock responses; no challenge retry wrapper",
+  "rows": [
+    {
+      "name": "success",
+      "status": "match",
+      "python": {
+        "name": "success",
+        "outcome": "ok",
+        "wait_seconds": 2,
+        "file_exists": true,
+        "bytes": 599,
+        "md5": "ac20330c40fdf2dfce2d0ea3eddb5632",
+        "sha256": "bb10deee9fb40087ece40165dd4b15fc40c7f4284709f1fcb7fb852f0408516f",
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      },
+      "crystal": {
+        "name": "success",
+        "outcome": "ok",
+        "wait_seconds": 2,
+        "file_exists": true,
+        "bytes": 599,
+        "md5": "ac20330c40fdf2dfce2d0ea3eddb5632",
+        "sha256": "bb10deee9fb40087ece40165dd4b15fc40c7f4284709f1fcb7fb852f0408516f",
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      }
+    },
+    {
+      "name": "mismatch",
+      "status": "match",
+      "python": {
+        "name": "mismatch",
+        "outcome": "integrity_error",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/00000000000000000000000000000000",
+          "https://catalog.example.invalid/slow_download/00000000000000000000000000000000/0/0",
+          "https://catalog.example.invalid/slow_download/00000000000000000000000000000000/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      },
+      "crystal": {
+        "name": "mismatch",
+        "outcome": "integrity_error",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/00000000000000000000000000000000",
+          "https://catalog.example.invalid/slow_download/00000000000000000000000000000000/0/0",
+          "https://catalog.example.invalid/slow_download/00000000000000000000000000000000/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      }
+    },
+    {
+      "name": "truncated",
+      "status": "match",
+      "python": {
+        "name": "truncated",
+        "outcome": "integrity_error",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      },
+      "crystal": {
+        "name": "truncated",
+        "outcome": "integrity_error",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      }
+    },
+    {
+      "name": "forbidden",
+      "status": "match",
+      "python": {
+        "name": "forbidden",
+        "outcome": "http_error",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      },
+      "crystal": {
+        "name": "forbidden",
+        "outcome": "http_error",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      }
+    },
+    {
+      "name": "server_error",
+      "status": "match",
+      "python": {
+        "name": "server_error",
+        "outcome": "http_error",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      },
+      "crystal": {
+        "name": "server_error",
+        "outcome": "http_error",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      }
+    },
+    {
+      "name": "interrupted",
+      "status": "match",
+      "python": {
+        "name": "interrupted",
+        "outcome": "network_error",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      },
+      "crystal": {
+        "name": "interrupted",
+        "outcome": "network_error",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      }
+    },
+    {
+      "name": "cancelled",
+      "status": "match",
+      "python": {
+        "name": "cancelled",
+        "outcome": "cancelled",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      },
+      "crystal": {
+        "name": "cancelled",
+        "outcome": "cancelled",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/ac20330c40fdf2dfce2d0ea3eddb5632",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      }
+    },
+    {
+      "name": "crc_corruption",
+      "status": "intentional",
+      "python": {
+        "name": "crc_corruption",
+        "outcome": "archive_invalid",
+        "wait_seconds": 2,
+        "file_exists": true,
+        "bytes": 599,
+        "md5": "962687a2d323ec783a90f95c0d1c4a83",
+        "sha256": "f9f89bb8f134309a7dc6ff628410c9688787c0a766013687a0c21e06280fcff7",
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/962687a2d323ec783a90f95c0d1c4a83",
+          "https://catalog.example.invalid/slow_download/962687a2d323ec783a90f95c0d1c4a83/0/0",
+          "https://catalog.example.invalid/slow_download/962687a2d323ec783a90f95c0d1c4a83/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      },
+      "crystal": {
+        "name": "crc_corruption",
+        "outcome": "archive_invalid",
+        "wait_seconds": 2,
+        "file_exists": false,
+        "bytes": 0,
+        "md5": null,
+        "sha256": null,
+        "partial_files": 0,
+        "requests": [
+          "https://catalog.example.invalid/search?q=Public+Domain+Fixture&display=&lang=en&ext=epub",
+          "https://catalog.example.invalid/md5/962687a2d323ec783a90f95c0d1c4a83",
+          "https://catalog.example.invalid/slow_download/962687a2d323ec783a90f95c0d1c4a83/0/0",
+          "https://catalog.example.invalid/slow_download/962687a2d323ec783a90f95c0d1c4a83/0/0",
+          "https://catalog.example.invalid/files/book.epub",
+          "https://catalog.example.invalid/data/book.epub?signature=a%2Bb"
+        ]
+      }
+    }
+  ]
+}

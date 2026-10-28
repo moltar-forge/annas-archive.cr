@@ -43,6 +43,8 @@ def project(book):
 def run(case):
     origin = 'https://catalog.example.invalid'
     body = case.get('body','')
+    if case['kind'] == 'search_limit':
+        return [project(x) for x in parse_search(body, origin)[:case['limit']]]
     if case['kind'] == 'search':
         return [project(x) for x in parse_search(body, origin)]
     if case['kind'] == 'detail':

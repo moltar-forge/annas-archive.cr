@@ -2,7 +2,9 @@
 
 Reference: [`meurz/annas-archive-cli`](https://github.com/meurz/annas-archive-cli/tree/001ab3250e9cd829e7225b6385e3fb8aac999090),
 commit `001ab3250e9cd829e7225b6385e3fb8aac999090` (`0.2.0rc4`, MIT).
-Shard baseline: `de06ffac01269ed239ccf5b7ceec9a63f6e9c1c9`.
+Current local work is based on public shard commit
+`ae5274a406365dc5dbd30179c6a7414a57f69bf2`.
+The original metadata comparison started at `de06ffac01269ed239ccf5b7ceec9a63f6e9c1c9`.
 The Python source was inspected before execution. Four reference module hashes
 are enforced by the runner. The four reduced HTML fixtures retain the reference
 MIT license in `../fixtures/reference/LICENSE`.
@@ -43,10 +45,10 @@ strings, request parameters and ordering are compared without normalization.
 Before correction, 6 of the initial 20 cases differed: bibliographic fields and
 source labels were omitted, current-record summaries included a Save control,
 and explicit page/repeated-filter requests were unavailable. After correction,
-**35 cases yield 27 matches, 8 documented differences, zero unexplained mismatches**.
-All **26 Crystal specs pass**. Mylar adapter/native lifecycle compatibility
-validation passed **27 backend examples**, including synthetic capture, MD5
-verification, validation/import and portable backup after cleanup.
+**38 cases yield 30 matches, 8 documented differences, zero unexplained mismatches**.
+All **45 Crystal specs pass**, including native transport, streaming and output
+validation. The additional metadata cases cover Python CLI default request
+parameters, its local 20-result limit and deferred cards at document position.
 
 | Behavior | Evidence | Result |
 | --- | --- | --- |
@@ -56,7 +58,7 @@ verification, validation/import and portable backup after cleanup.
 | Query construction | Unicode, ampersand, scalar and repeated language/format, content, page 2/3 and sort | Match; one explicitly requested page, no automatic traversal |
 | Ordinary landing controls | Absolute signed URL, relative URL and label-selected link | Match; signed bytes preserved |
 | Countdown | Numeric countdown | Match; Crystal returns scheduling data rather than sleeping |
-| Ordinary redirect | Same-origin HTTPS redirect through fixture transport | Same requested URLs/final parsed result; production redirect security belongs to injected transport |
+| Ordinary redirect | Same-origin HTTPS redirect through fixture transport | Same requested URLs/final parsed result; native transport enforces exact-host HTTPS redirects and public-address checks |
 | Failure classification | Plain 403, 401, 503, 429, recognized challenge, unknown layout, parked domain | Semantic classifications match; Python's generic HTTP code is mapped by status in the oracle |
 
 Intentional measured differences:
@@ -70,14 +72,8 @@ Intentional measured differences:
   page. The reference accepts the larger input and parses 51 fixture records.
 - Crystal excludes HTTP source links; the reference emits them as metadata.
 
-Other deliberate boundaries are not parity claims: HTTPS origin validation,
-private-network/DNS/redirect policy delegated to the embedding transport,
-response/link limits, no cookie import, no challenge-related URL rewriting,
-no mirror switching, no CLI process dependency, and no standalone file downloader.
-Mylar owns native capture/MD5 verification, comic matching, archive validation,
-import and cleanup. A standalone metadata shard is not equivalent to the CLI's
-complete file-downloader command.
-
-The original live Anna search denial remains unresolved. Fixture parity does not
-show that anonymous search works from the Mylar server. No denied route was retried
-and no challenge workaround was executed or ported.
+Other deliberate boundaries are not parity claims: bounded input/response/link
+limits, no cookie import, no challenge-related URL rewriting, no mirror switching
+and no CLI process dependency. Mylar separately owns comic identity matching,
+import state and application cleanup. See [full download evidence](DOWNLOADS.md)
+for the standalone native downloader and the remaining live boundary.

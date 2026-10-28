@@ -1,20 +1,21 @@
 # annas-archive.cr
 
-Experimental native Crystal library for parsing Anna’s Archive search and record
-HTML. **Experimental preview: live service availability and file acquisition are
+Experimental native Crystal library for Anna’s Archive metadata and verified
+file downloads. **Experimental preview: live service availability and file acquisition are
 not verified.** No CLI, Python, browser runtime or account is used by this shard.
 
 The current implementation provides bounded search/record parsing and a client
-with an injected transport, plus parsing of accessible download landing pages.
-It does **not** fetch book files or resolve protected
-download landing pages. Links from record pages are metadata, not validated
+with injectable transport, accessible landing-page resolution, and a bounded
+streaming file downloader with native HTTPS transport. It does **not** resolve
+protected download landing pages. Links from record pages are metadata, not validated
 permission or download authority. This is an unofficial HTML interface, not an
 Anna’s Archive supported search API. Layout changes can break it.
 
 ## Installation
 
-Requires Crystal 1.20+ and libxml2, used by Crystal’s standard XML library. There
-are no third-party shard dependencies. Tested on Crystal 1.20.2/Linux.
+Requires Crystal 1.20+, libxml2 and OpenSSL/CA certificates through the Crystal
+standard library. There are no third-party shard dependencies. Native atomic file
+publication currently targets POSIX systems. Tested on Crystal 1.20.2/Linux.
 
 Add the dependency to your application and pin a reviewed revision for production:
 
@@ -83,21 +84,23 @@ host/DNS/redirect policies, TLS validation, body limits and deadlines **before**
 returning a response; the parser’s size check cannot bound an already buffered
 network response. Translate and bound HTTP `Retry-After` dates/seconds in that
 transport. Do not forward cookies/credentials to other hosts or follow unvalidated
-links. No general network transport is included in this prototype.
+links. `NativeHTTPTransport#page` provides this bounded metadata transport;
+custom transports remain responsible for enforcing the same policy.
 
 `search(query, language: nil, format: nil, languages: [], formats: [], content: [],
-page: nil, sort: nil)` fetches exactly one `/search` page. Scalar arguments remain
+page: nil, sort: nil, limit: nil)` fetches exactly one `/search` page. Scalar arguments remain
 compatible; plural filters emit repeated `lang`/`ext` parameters. `content`, explicit
 positive `page` and known sort modes are supported. No additional pages are fetched
-automatically. Query size remains at most 512 bytes and filter lists at most 20
+automatically. `limit` truncates locally (1–50), matching CLI local result limiting;
+it is never sent as a server parameter. Query size remains at most 512 bytes and filter lists at most 20
 values. Bibliographic format filters include PDF/EPUB and the comic archive formats;
 applications must still reject formats they cannot import. `detail(md5)` fetches one
 `/md5/<hash>` page. `resolve(url)` fetches and parses one ordinary same-origin
 `/slow_download/<md5>/<number>/<number>` landing page. Signed query strings are
 preserved; encoded path alternatives and other origins are rejected before HTTP.
-It returns `Resolution`, never file bytes. The client never automatically paginates, retries,
-sleeps, switches mirrors,
-imports cookies, executes scripts or downloads files. There are no search caches.
+It returns `Resolution`; pass its URL to `Downloader` after any required wait. The metadata client never automatically paginates, retries, sleeps, switches
+mirrors, imports cookies or executes scripts. File streaming is a separate
+`Downloader` API, not an implicit effect of search/record parsing. There are no search caches.
 
 Each client serializes requests and enforces a local minimum interval (30 seconds
 by default, configurable from 1–3600). This is a client policy, **not** a verified
@@ -147,8 +150,9 @@ not establish a stable service contract or guaranteed comic metadata quality.
 
 That reference also changes query/path encoding after challenges. **Those retries
 are excluded here.** Protected pages stop with an error. Membership/cookie support,
-automatic multi-hop traversal, streamed transfer, MD5 validation,
-archive validation/import and resumable jobs are not implemented.
+arbitrary cross-origin HTML traversal, comic import and resumable jobs are not
+implemented. Ordinary same-host HTTPS redirects are bounded; file streaming,
+MD5/SHA-256 and bounded ZIP CRC/EPUB checks are implemented by `Downloader`.
 
 The implementation and synthetic fixtures are independently written; see `NOTICE`.
 Four reduced MIT-licensed reference HTML fixtures are included with their license
@@ -177,3 +181,75 @@ publisher, displayed size, cover and record URLs in addition to the original
 identity hints. `Detail.description` and `Link.label` retain source metadata.
 Existing constructors and scalar `search` calls remain compatible. Metadata URLs
 are hints only; they are never fetched or granted download authority by parsing.
+
+
+## Standalone verified file downloads (local review)
+
+```crystal
+transport = AnnasArchive::NativeHTTPTransport.new
+client = AnnasArchive::Client.new("https://annas-archive.gl", ->(url : String) {
+  transport.page(url)
+})
+# Search, inspect a record, choose an ordinary source, and schedule any required
+# cooldown/countdown before client.resolve. Never retry a denied/challenged route.
+# `resolved` is the explicit Resolution from that permitted landing page.
+# output_directory must already exist, be caller-owned, and not group/world writable.
+# result = AnnasArchive::Downloader.new(transport).download(
+#   resolved, File.join(output_directory, "book.epub"), selected.md5, "epub")
+```
+
+`Downloader#download(url_or_resolution, destination, expected_md5, format: nil,
+cancelled: -> { false }, progress: nil)` performs one file transfer. MD5 is required
+and SHA-256 is computed while streaming. It returns `DownloadedFile` with `path`,
+`bytes`, `md5`, `sha256` and `validation`. A countdown produces
+`download_wait_required` with `retry_after`; it does not sleep or request a file.
+
+Default `DownloadPolicy` limits are 128 MiB transferred, 60 seconds elapsed,
+512 MiB expanded ZIP bytes and 10,000 ZIP entries. Configure these explicitly for
+larger authorized files. `format: "epub"` checks ZIP CRCs, the EPUB mimetype and
+container entry before publication. ZIP/CBZ/DOCX use ZIP CRC validation; PDF and RAR
+use signature checks; no format hint means hash-only validation. These checks do
+not establish comic identity, authenticity, rights, or Imported state.
+
+Native transport requires HTTPS, excludes private/reserved/literal-IP targets,
+checks every DNS answer and pins the revalidated address while preserving TLS
+hostname verification/SNI. Redirects stay on the exact initial host and stop after
+three hops. No cookies or credentials are loaded. Error/redirect bodies are not
+drained indefinitely; metadata bodies and headers are bounded. HTTP 429 retains a
+per-host Retry-After cooldown; reuse the downloader rather than recreating it to
+evade that cooldown. The conservative address filter follows the
+[IANA IPv6 special-purpose registry](https://www.iana.org/assignments/iana-ipv6-special-registry/). Blocking DNS is isolated in at most one outstanding
+native worker; timeout/cancellation returns promptly and further resolution fails
+busy until that worker finishes. Network sockets close on deadline/cancellation;
+ZIP validation checks the deadline between bounded chunks. OS filesystem calls
+such as fsync cannot be forcibly preempted by this library.
+
+The native transport refuses ambient proxy configuration with
+`download_proxy_transport_required`; it never silently bypasses an embedding
+network policy. An authorized proxy environment must supply a `StreamTransport`
+that enforces its proxy, URL, public-address, redirect, byte and deadline policy.
+Injected `open` callbacks must stream within their lifetime and honor
+`TransferContext`; they cannot return an unbounded background reader.
+
+Output uses a private 0600 partial in a caller-controlled directory, opened via
+an anchored descriptor. Verified bytes are published with a no-overwrite atomic
+hard link. Cancellation, truncation, mismatch and errors remove the partial.
+Existing files and symlinks are never replaced. `download_publication_uncertain`
+means verified final bytes may exist after a sync/namespace failure; inspect that
+file rather than blindly retrying. Process termination or filesystem failure can leave a private partial;
+partials are never automatically resumed or treated as complete files.
+
+Run the complete offline consumer example with a private empty output directory:
+
+```sh
+crystal run examples/standalone_fixture.cr -- /tmp/anna-offline-output
+python3 spec/differential/compare_downloads.py \
+  --reference /path/to/pinned/annas-archive-cli \
+  --python /tmp/anna-parity-env/bin/python
+```
+
+No live Anna request is made by either command. The full workflow fixture uses
+identical synthetic EPUB bytes for both clients, including search, record,
+countdown, landing control, ordinary redirect, transfer and hash/file validation.
+See `spec/differential/download-results.json` for success and failure evidence.
+The reference's outer challenge-retry method is never executed.

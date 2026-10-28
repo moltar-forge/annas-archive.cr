@@ -6,7 +6,7 @@ require "http/params"
 # An extractable, metadata-only HTML client. No credentials, process execution,
 # challenge retries or file downloads. The caller supplies its HTTP policy.
 module AnnasArchive
-  VERSION        = "0.1.0"
+  VERSION        = "0.2.0"
   MAX_PAGE_BYTES = 1_048_576
   MAX_RESULTS    =        50
   CLOCK_ORIGIN   = Time.instant
@@ -101,42 +101,61 @@ module AnnasArchive
       Entry.new(md5, title, language, format, summary, size: size)
     end
 
-    def search(body : String, origin : String? = nil) : Array(Entry)
-      doc = document(body)
-      fragments = [doc]
-      doc.xpath_nodes("//*[#{has_class("js-scroll-hidden")}]//comment()").each do |comment|
-        fragments << document(comment.content)
-      end
-      found = {} of String => Entry
-      fragments.each do |fragment|
-        fragment.xpath_nodes("//a[@href]").each do |anchor|
-          md5 = md5_path(anchor["href"], origin) || next
-          next if found.has_key?(md5)
-          title = anchor.xpath_node(".//h3") || anchor.xpath_node(".//*[#{has_class("font-bold")}]")
-          if title
-            next if anchor.xpath_node(".//*[#{has_class("js-aarecord-list-fallback-cover")}]")
-            title_text = text(title)
-            summary = text(anchor.xpath_node(".//*[#{has_class("text-gray-500")}]"))
-            author_node = anchor.xpath_node(".//*[#{has_class("italic")}]")
-            publisher_node = title.xpath_node("following-sibling::div[1]")
-            author = text(author_node)
-            publisher = publisher_node == author_node ? "" : text(publisher_node)
-            cover = metadata_url(anchor.xpath_node(".//img[@src]").try(&.["src"]), origin)
-          elsif anchor["class"]?.try(&.split.includes?("js-vim-focus"))
-            details = anchor.parent.try(&.parent) || next
-            title_text = text(anchor)
-            summary = summary_text(details.xpath_node(".//*[#{has_class("text-gray-800")}]"))
-            author = icon_text(details, "mdi--user-edit")
-            publisher = icon_text(details, "mdi--company")
-            cover = metadata_url(details.parent.try(&.xpath_node(".//img[@src]")).try(&.["src"]), origin)
-          else
-            next
+    private def search_anchors(doc : XML::Node) : Array(XML::Node)
+      # Expand deferred comment cards at their document position, so a local
+      # result limit preserves the same ranking/order as the reference parser.
+      anchors = [] of XML::Node
+      stack = [] of {XML::Node, Bool, Int32}
+      stack << {doc, false, 0}
+      until stack.empty?
+        node, deferred, depth = stack.pop
+        raise Error.new("result_limit") if depth > 128
+        if node.comment?
+          if deferred
+            fragment = document(node.content)
+            stack << {fragment, false, depth + 1}
           end
-          next if title_text.empty?
-          found[md5] = entry(md5, title_text, summary).copy_with(author: author, publisher: publisher, cover_url: cover,
-            url: origin.try { |base| URI.parse(base).resolve("/md5/#{md5}").to_s })
-          raise Error.new("result_limit") if found.size > MAX_RESULTS
+          next
         end
+        anchors << node if node.element? && node.name == "a" && node["href"]?
+        inside = deferred || node["class"]?.try { |value| value.split.includes?("js-scroll-hidden") } || false
+        node.children.to_a.reverse_each { |child| stack << {child, inside, depth + 1} }
+      end
+      anchors
+    end
+
+    def search(body : String, origin : String? = nil, limit : Int32? = nil) : Array(Entry)
+      raise Error.new("invalid_input") if limit && !limit.in?(1..MAX_RESULTS)
+      doc = document(body)
+      found = {} of String => Entry
+      search_anchors(doc).each do |anchor|
+        md5 = md5_path(anchor["href"], origin) || next
+        next if found.has_key?(md5)
+        title = anchor.xpath_node(".//h3") || anchor.xpath_node(".//*[#{has_class("font-bold")}]")
+        if title
+          next if anchor.xpath_node(".//*[#{has_class("js-aarecord-list-fallback-cover")}]")
+          title_text = text(title)
+          summary = text(anchor.xpath_node(".//*[#{has_class("text-gray-500")}]"))
+          author_node = anchor.xpath_node(".//*[#{has_class("italic")}]")
+          publisher_node = title.xpath_node("following-sibling::div[1]")
+          author = text(author_node)
+          publisher = publisher_node == author_node ? "" : text(publisher_node)
+          cover = metadata_url(anchor.xpath_node(".//img[@src]").try(&.["src"]), origin)
+        elsif anchor["class"]?.try(&.split.includes?("js-vim-focus"))
+          details = anchor.parent.try(&.parent) || next
+          title_text = text(anchor)
+          summary = summary_text(details.xpath_node(".//*[#{has_class("text-gray-800")}]"))
+          author = icon_text(details, "mdi--user-edit")
+          publisher = icon_text(details, "mdi--company")
+          cover = metadata_url(details.parent.try(&.xpath_node(".//img[@src]")).try(&.["src"]), origin)
+        else
+          next
+        end
+        next if title_text.empty?
+        found[md5] = entry(md5, title_text, summary).copy_with(author: author, publisher: publisher, cover_url: cover,
+          url: origin.try { |base| URI.parse(base).resolve("/md5/#{md5}").to_s })
+        return found.values if limit && found.size >= limit
+        raise Error.new("result_limit") if found.size > MAX_RESULTS
       end
       if found.empty? && !text(doc).matches?(/no files found|no results(?: found)?|没有找到|未找到|找不到/i)
         raise Error.new("unrecognized_page")
@@ -234,7 +253,7 @@ module AnnasArchive
 
     def search(query : String, language : String? = nil, format : String? = nil,
                languages : Array(String) = [] of String, formats : Array(String) = [] of String,
-               content : Array(String) = [] of String, page : Int32? = nil, sort : String? = nil) : Array(Entry)
+               content : Array(String) = [] of String, page : Int32? = nil, sort : String? = nil, limit : Int32? = nil) : Array(Entry)
       raise Error.new("invalid_input") unless query.bytesize.in?(1..512) && !query.strip.empty? && !query.matches?(/[\x00-\x1f\x7f]/)
       language_filters = (language ? [language] : [] of String) + languages
       format_filters = (format ? [format] : [] of String) + formats
@@ -243,6 +262,7 @@ module AnnasArchive
       raise Error.new("invalid_input") unless format_filters.all? { |value| value.matches?(/\A(?:cbz|cbr|zip|rar|pdf|epub|mobi|azw3?|djvu?|txt|rtf|docx?|html|fb2)\z/) }
       raise Error.new("invalid_input") unless content.all? { |value| value.matches?(/\A[a-z][a-z0-9_]{0,63}\z/) }
       raise Error.new("invalid_input") if page && page < 1
+      raise Error.new("invalid_input") if limit && !limit.in?(1..MAX_RESULTS)
       raise Error.new("invalid_input") if sort && !sort.in?(%w[relevance newest oldest largest smallest newest_added oldest_added])
       params = HTTP::Params.new
       params.add("q", query)
@@ -252,7 +272,7 @@ module AnnasArchive
       content.each { |value| params.add("content", value) }
       params.add("sort", sort) if sort
       params.add("page", page.to_s) if page
-      Parser.search(page("/search?#{params}"), @origin)
+      Parser.search(page("/search?#{params}"), @origin, limit)
     end
 
     def detail(md5 : String) : Detail

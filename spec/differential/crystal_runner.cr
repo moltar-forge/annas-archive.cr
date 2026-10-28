@@ -12,6 +12,8 @@ results = JSON.parse(File.read(ARGV[0])).as_a.map do |item|
   begin
     body = item["body"]?.try(&.as_s) || ""
     value = case item["kind"].as_s
+            when "search_limit"
+              AnnasArchive::Parser.search(body, origin, limit: item["limit"].as_i).map { |entry| project(entry) }.to_json
             when "search"
               AnnasArchive::Parser.search(body, origin).map { |entry| project(entry) }.to_json
             when "detail"
