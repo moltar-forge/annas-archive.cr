@@ -90,3 +90,26 @@ describe "Pinned reference normal-flow compatibility" do
     calls.should eq 1
   end
 end
+
+describe "Bounded record mirror lists" do
+  it "retains all ordinary links after 21 member mirrors and deduplicates 46 anchors" do
+    member = (0...21).map { |n| %(<a class="js-download-link" href="/fast_download/#{"1" * 32}/#{n}/0">Member #{n}</a>) }
+    slow = (0...21).map { |n| %(<a class="js-download-link" href="/slow_download/#{"1" * 32}/#{n}/0?signature=a%2Bb">Slow #{n}</a>) }
+    html = %(<div class="text-3xl">Synthetic Gutenberg-like mirror list</div>) + (member + slow + slow.first(4)).join
+    links = AnnasArchive::Parser.detail(html, "1" * 32, "https://catalog.example.invalid").links
+    links.size.should eq 42
+    links.first(21).all? { |link| link.kind == "member" }.should be_true
+    links.last(21).all? { |link| link.kind == "browser" }.should be_true
+    links[21].label.should eq "Slow 0"
+    links.last.url.should end_with "/20/0?signature=a%2Bb"
+  end
+
+  it "accepts the exact unique bound and fails closed without silently truncating" do
+    anchors = (0..AnnasArchive::MAX_RECORD_LINKS).map { |n| %(<a class="js-download-link" href="https://files.example.invalid/#{n}.epub">Source</a>) }
+    title = %(<div class="text-3xl">Synthetic</div>)
+    AnnasArchive::Parser.detail(title + anchors.first(AnnasArchive::MAX_RECORD_LINKS).join, "1" * 32, "https://catalog.example.invalid").links.size.should eq AnnasArchive::MAX_RECORD_LINKS
+    expect_raises(AnnasArchive::Error, "result_limit") { AnnasArchive::Parser.detail(title + anchors.join, "1" * 32, "https://catalog.example.invalid") }
+    repeated = anchors.first * (AnnasArchive::MAX_RECORD_ANCHORS + 1)
+    expect_raises(AnnasArchive::Error, "result_limit") { AnnasArchive::Parser.detail(title + repeated, "1" * 32, "https://catalog.example.invalid") }
+  end
+end

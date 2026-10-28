@@ -6,11 +6,12 @@ require "http/params"
 # Bounded metadata client with one-shot challenge compatibility retries.
 # The caller supplies its HTTP policy; no scripts or external runtime execute.
 module AnnasArchive
-  VERSION          = "0.3.0"
-  MAX_PAGE_BYTES   = 1_048_576
-  MAX_RESULTS      =        50
-  MAX_RECORD_LINKS =       128
-  CLOCK_ORIGIN     = Time.instant
+  VERSION            = "0.3.0"
+  MAX_PAGE_BYTES     = 1_048_576
+  MAX_RESULTS        =        50
+  MAX_RECORD_LINKS   =       128
+  MAX_RECORD_ANCHORS =       256
+  CLOCK_ORIGIN       = Time.instant
 
   class Error < Exception
     getter code : String
@@ -186,14 +187,18 @@ module AnnasArchive
       end
       links = [] of Link
       seen = Set(String).new
-      doc.xpath_nodes("//a[#{has_class("js-download-link")} and @href]").each do |anchor|
+      anchors = doc.xpath_nodes("//a[#{has_class("js-download-link")} and @href]")
+      raise Error.new("result_limit") if anchors.size > MAX_RECORD_ANCHORS
+      anchors.each do |anchor|
         uri = URI.parse(origin).resolve(anchor["href"])
         next unless uri.scheme == "https" && uri.host && !uri.user && !uri.password && !uri.fragment
         url = uri.to_s
+        raise Error.new("result_limit") if url.bytesize > 4096
         next if seen.includes?(url)
         seen << url
         kind = uri.path.starts_with?("/fast_download/") ? "member" : uri.path.starts_with?("/slow_download/") ? "browser" : "external"
         label = text(anchor)
+        raise Error.new("result_limit") if label.bytesize > 1024
         links << Link.new(url, kind, label.empty? ? uri.host.not_nil! : label)
         raise Error.new("result_limit") if links.size > MAX_RECORD_LINKS
       end

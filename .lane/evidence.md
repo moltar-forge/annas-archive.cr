@@ -44,3 +44,7 @@ Scope remains record-limit repair, regression tests, current documentation and l
 ## Publication
 
 PR #3: https://github.com/moltar-forge/annas-archive.cr/pull/3 (open; no CI workflows/checks configured; no review requested). Parent verified initial four-file implementation scope and then added current README and lane evidence. Independent system md5/shasum match the Downloader results above; unzip -t reports no compressed-data errors. Parent final acceptance: clean worktree, final published head equality and seven-file scoped PR inspection. No merge or release promotion performed.
+
+## Concurrent upstream reconciliation
+
+While PR #3 was publishing, Holden commit 2a60c08 landed the same 128-link repair on main, with additional 256-source-anchor, 4096-byte URL and 1024-byte label bounds. Merged main into this branch without replacing the upstream implementation; src/annas_archive/client.cr is byte-identical to main. Updated the duplicate regression to remain within the new source-anchor bound, preserving its unique-link overflow check. All 66 specs and formatting passed on the reconciled tree. The PR now supplies extra regression coverage, corrected docs and live verification rather than a second production implementation. Final live verification and publication follow below.

@@ -41,7 +41,7 @@ describe "record link limits" do
   it "counts only unique valid URLs at the bound and rejects the next valid URL" do
     urls = record_links(AnnasArchive::MAX_RECORD_LINKS)
     ignored = ["javascript:run()", "http://files.example.invalid/insecure", "https://user:pass@files.example.invalid/private", "https://files.example.invalid/book#fragment"]
-    mixed = ignored + urls.flat_map { |url| [url, url] } + ignored + [urls.first]
+    mixed = ignored + urls + ignored + urls.first(32)
     parse_record_links(mixed).map(&.url).should eq urls
     expect_raises(AnnasArchive::Error, "result_limit") do
       parse_record_links(mixed + ["https://files.example.invalid/overflow"])
