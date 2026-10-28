@@ -22,11 +22,11 @@
     "base_branch": "origin/main",
     "branch": "fix/record-link-cap"
   },
-  "status": "parent_verifying",
+  "status": "complete",
   "created_at": "2026-10-28T18:56:11.708Z",
-  "updated_at": "2026-10-28T19:01:57.035Z",
+  "updated_at": "2026-10-28T19:03:15.328Z",
   "last_heartbeat_at": "",
-  "last_known_step": "concurrent main fix preserved byte-for-byte; 66 tests passed; verifying live integration",
+  "last_known_step": "upstream fix preserved; 66 specs and fresh integrated live acquisition passed; PR open for review",
   "last_command": "",
   "acceptance_commands": [
     "crystal spec",
