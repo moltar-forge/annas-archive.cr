@@ -124,6 +124,12 @@ transports must translate operational failures to IO::Error or existing closed
 AnnasArchive::Error codes, never embed private data in error codes. Do not log
 arbitrary callback exception messages. This narrows the former blanket metadata
 exception rescue; the file-download error/publication contract is unchanged.
+Native page operations scope that distinction on the existing TransferContext
+without resetting its deadline: resolver/exchange programmer faults propagate,
+including faults returned from the bounded DNS worker. Native IO/TLS and actual
+HTTP wire/parser failures remain closed operational errors. The metadata scope
+is restored on success or failure, so subsequent file transfers retain their
+existing closed errors and partial-cleanup/publication behavior.
 
 Acquisition.healthcheck(cancelled: -> { false }) shares its normal total operation
 deadline, bounded cancellable pacing and native network policy. Each probe is an

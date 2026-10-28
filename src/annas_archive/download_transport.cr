@@ -5,6 +5,17 @@ require "openssl"
 
 module AnnasArchive
   class TransferContext
+    getter? metadata = false
+
+    # One owned context/deadline; restore the file error contract after a page.
+    def with_metadata(&)
+      previous = @metadata
+      @metadata = true
+      yield
+    ensure
+      @metadata = previous || false
+    end
+
     def initialize(timeout : Time::Span = 60.seconds, @cancelled : Proc(Bool) = -> { false },
                    @clock : Proc(Time::Span) = -> { Time.instant - CLOCK_ORIGIN })
       raise Error.new("invalid_input") unless timeout > Time::Span.zero && timeout <= 5.minutes
@@ -49,19 +60,21 @@ module AnnasArchive
     # Metadata uses the identical native transport/policy but a separate bound.
     def page(url : String, context = TransferContext.new(30.seconds)) : Response
       value = nil.as(Response?)
-      open(url, context) do |response|
-        output = IO::Memory.new
-        buffer = Bytes.new(16_384)
-        loop do
-          context.check!
-          count = response.body.read(buffer)
-          break if count == 0
-          raise Error.new("page_too_large") if output.size + count > MAX_PAGE_BYTES
-          output.write(buffer[0, count])
+      context.with_metadata do
+        open(url, context) do |response|
+          output = IO::Memory.new
+          buffer = Bytes.new(16_384)
+          loop do
+            context.check!
+            count = response.body.read(buffer)
+            break if count == 0
+            raise Error.new("page_too_large") if output.size + count > MAX_PAGE_BYTES
+            output.write(buffer[0, count])
+          end
+          delay = RetryDelay.seconds(response.headers["Retry-After"]?)
+          value = Response.new(response.status, output.to_s, delay)
+          nil
         end
-        delay = RetryDelay.seconds(response.headers["Retry-After"]?)
-        value = Response.new(response.status, output.to_s, delay)
-        nil
       end
       value.not_nil!
     end
@@ -110,6 +123,7 @@ module AnnasArchive
     # unbounded resolver threads. A stuck worker makes later calls fail busy.
     private class LookupResult
       property value : Array(String)? = nil
+      property fault : Exception? = nil
       getter ready = Atomic(Bool).new(false)
     end
 
@@ -123,8 +137,8 @@ module AnnasArchive
         Thread.new do
           begin
             result.value = lookup(host)
-          rescue
-            result.value = nil
+          rescue ex
+            result.fault = ex
           ensure
             @@busy.set(false)
             result.ready.set(true)
@@ -136,7 +150,12 @@ module AnnasArchive
       end
       loop do
         context.check!
-        return result.value || raise(Error.new("download_dns_failed")) if result.ready.get
+        if result.ready.get
+          if fault = result.fault
+            raise fault if context.metadata? && !fault.is_a?(Error) && !fault.is_a?(IO::Error)
+          end
+          return result.value || raise(Error.new("download_dns_failed"))
+        end
         sleep Math.min(context.remaining, 1.millisecond)
       end
     end
@@ -206,8 +225,14 @@ module AnnasArchive
       end
     rescue ex : Error
       raise ex
-    rescue
+    rescue ex : IO::Error | OpenSSL::Error
       context.check!
+      raise Error.new("download_network_error")
+    rescue ex
+      context.check!
+      # Metadata must not turn programming faults into a health diagnosis.
+      # Direct file opens keep their existing closed-error behavior.
+      raise ex if context.metadata?
       raise Error.new("download_network_error")
     end
 
@@ -259,13 +284,25 @@ module AnnasArchive
         connect_socket(socket, ip, context)
         tls = OpenSSL::SSL::Socket::Client.new(socket, context: OpenSSL::SSL::Context::Client.new, sync_close: true, hostname: uri.host.not_nil!)
         client = HTTP::Client.new(tls, uri.host.not_nil!, 443)
-        client.get(uri.request_target, headers) do |response|
-          begin
-            yield StreamResponse.new(response.status_code, response.headers, response.body_io)
-          ensure
-            # Avoid draining an untrusted redirect/error body during cleanup.
-            client.close
+        callback_fault = false
+        begin
+          client.get(uri.request_target, headers) do |response|
+            begin
+              yield StreamResponse.new(response.status_code, response.headers, response.body_io)
+            rescue ex
+              callback_fault = true
+              raise ex
+            ensure
+              # Avoid draining an untrusted redirect/error body during cleanup.
+              client.close
+            end
           end
+        rescue ex
+          # Crystal's HTTP response parser also raises untyped exceptions. Close
+          # those at the actual wire boundary, not resolver/exchange callbacks.
+          raise ex if callback_fault
+          context.check!
+          raise Error.new("download_network_error")
         end
       ensure
         stop.send(nil)

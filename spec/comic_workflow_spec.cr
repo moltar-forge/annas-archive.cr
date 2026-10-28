@@ -112,7 +112,7 @@ describe "public comic workflow" do
     data = comic_archive
     # Damage the CRC field while keeping the expected hash equal to the delivered bytes.
     corrupt = data.dup
-    offset = corrupt.index("PK\u0001\u0002").not_nil! + 16
+    offset = corrupt.byte_index("PK\u0001\u0002").not_nil! + 16
     bytes = corrupt.to_slice.dup
     bytes[offset] ^= 0xff_u8
     corrupt = String.new(bytes)
