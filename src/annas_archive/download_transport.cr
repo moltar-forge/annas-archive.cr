@@ -168,8 +168,10 @@ module AnnasArchive
   end
 
   class NativeHTTPTransport < StreamTransport
-    def initialize(@resolver : PublicResolver = PublicResolver.new, @max_redirects : Int32 = 3, @cookies : CookieSession = CookieSession.new)
+    def initialize(@resolver : PublicResolver = PublicResolver.new, @max_redirects : Int32 = 3, @cookies : CookieSession = CookieSession.new,
+                   @user_agent : String = "annas-archive.cr/#{VERSION}")
       raise Error.new("invalid_input") unless @max_redirects.in?(0..5)
+      raise Error.new("invalid_input") unless @user_agent.bytesize.in?(1..512) && !@user_agent.strip.empty? && @user_agent.each_byte.all? { |c| c.in?(32..126) }
     end
 
     def open(url : String, context : TransferContext, &block : StreamResponse -> Nil) : Nil
@@ -225,7 +227,7 @@ module AnnasArchive
     end
 
     protected def perform(uri : URI, address : String, context : TransferContext, &block : StreamResponse -> Nil) : Nil
-      headers = HTTP::Headers{"Host" => uri.host.not_nil!, "Accept-Encoding" => "identity", "User-Agent" => "annas-archive.cr/#{VERSION}"}
+      headers = HTTP::Headers{"Host" => uri.host.not_nil!, "Accept-Encoding" => "identity", "User-Agent" => @user_agent}
       if value = @cookies.header(uri)
         headers["Cookie"] = value
       end

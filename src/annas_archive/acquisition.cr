@@ -73,8 +73,8 @@ module AnnasArchive
     @active_context : TransferContext? = nil
     @lock = Mutex.new
 
-    def self.new(origin : String, **options)
-      Acquisition(NativeHTTPTransport).new(origin, NativeHTTPTransport.new, **options)
+    def self.new(origin : String, cookies : CookieSession = CookieSession.new, user_agent : String = "annas-archive.cr/#{VERSION}", **options)
+      Acquisition(NativeHTTPTransport).new(origin, NativeHTTPTransport.new(cookies: cookies, user_agent: user_agent), **options)
     end
 
     def initialize(origin : String, transport : T,
@@ -88,9 +88,9 @@ module AnnasArchive
     end
 
     # Explicit record and direct URL APIs avoid ambiguous source selection.
-    def record(value : String, destination : String, expected_md5 : String? = nil, source : Int32? = nil,
+    def record(value : String, destination : String? = nil, expected_md5 : String? = nil, source : Int32? = nil,
                format : String? = nil, max_wait : Int32 = 300, cancelled : Proc(Bool) = -> { false },
-               progress : Proc(Int64, Nil)? = nil, wait_progress : Proc(Int32, Nil)? = nil) : DownloadedFile
+               progress : Proc(Int64, Nil)? = nil, wait_progress : Proc(Int32, Nil)? = nil, directory : String = ".") : DownloadedFile
       @lock.synchronize do
         context = start(max_wait, cancelled)
         md5 = Client.record_id(value)
@@ -101,20 +101,26 @@ module AnnasArchive
         link = if index = source
                  detail.links[index - 1]? || raise Error.new("invalid_source_index")
                else
-                 detail.links.find { |item| item.kind != "member" && item.url.starts_with?("https://") } || raise Error.new("no_download_source")
+                 detail.links.find { |item| item.kind != "member" && item.fetchable? } || raise Error.new("no_download_source")
                end
-        transfer(link.url, destination, md5, format, max_wait, context, progress, wait_progress)
+        raise Error.new("unsupported_source") unless link.fetchable?
+        transfer(link.url, destination, md5, format, max_wait, context, progress, wait_progress, directory)
       ensure
         @active_context = nil
       end
     end
 
-    def download(url : String, destination : String, expected_md5 : String, format : String? = nil,
+    # Named checksum keeps it mandatory when the destination is omitted.
+    def download(url : String, *, expected_md5 : String, directory : String = ".", **options) : DownloadedFile
+      download(url, nil, expected_md5, **options, directory: directory)
+    end
+
+    def download(url : String, destination : String?, expected_md5 : String, format : String? = nil,
                  max_wait : Int32 = 300, cancelled : Proc(Bool) = -> { false },
-                 progress : Proc(Int64, Nil)? = nil, wait_progress : Proc(Int32, Nil)? = nil) : DownloadedFile
+                 progress : Proc(Int64, Nil)? = nil, wait_progress : Proc(Int32, Nil)? = nil, directory : String = ".") : DownloadedFile
       @lock.synchronize do
         context = start(max_wait, cancelled)
-        transfer(url, destination, Client.record_id(expected_md5), format, max_wait, context, progress, wait_progress)
+        transfer(url, destination, Client.record_id(expected_md5), format, max_wait, context, progress, wait_progress, directory)
       ensure
         @active_context = nil
       end
@@ -129,8 +135,8 @@ module AnnasArchive
       context
     end
 
-    private def transfer(url : String, destination : String, md5 : String, format : String?, max_wait : Int32,
-                         context : TransferContext, progress : Proc(Int64, Nil)?, wait_progress : Proc(Int32, Nil)?) : DownloadedFile
+    private def transfer(url : String, destination : String?, md5 : String, format : String?, max_wait : Int32,
+                         context : TransferContext, progress : Proc(Int64, Nil)?, wait_progress : Proc(Int32, Nil)?, directory : String) : DownloadedFile
       wait_deadline = @clock.call + max_wait.seconds
       attempts = 1
       hops = 0
@@ -168,7 +174,7 @@ module AnnasArchive
           target
         end
       end
-      @downloader.download(url, destination, md5, format, progress: progress, shared_context: context, landing: landing)
+      @downloader.download(url, destination, md5, format, progress: progress, shared_context: context, landing: landing, output_directory: directory, prepare_parents: true)
     end
   end
 end

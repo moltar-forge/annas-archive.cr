@@ -67,8 +67,11 @@ without making network requests.
   and session cookies to the exact host. Ambient proxies require a custom transport.
 - Default bounds: 1 MiB metadata pages, 50 search results, 128 unique valid record links
   from at most 256 source anchors. Downloads allow 128 MiB transferred,
-  512 MiB expanded and 60 seconds.
-- No member API, browser-cookie import, automatic pagination, mirror switching,
+  512 MiB expanded. Downloader defaults to 60 seconds; Acquisition has a
+  300-second total operation deadline.
+- Explicit scoped Netscape import, custom User-Agent and safe automatic output
+  naming are available through [Acquisition](docs/api.md#verified-acquisition).
+- No member API, automatic pagination, mirror switching,
   resumable downloads or comic-library import.
 - Metadata and file validation do not establish edition identity or permission to
   download. Do not log signed download URLs or credentials.

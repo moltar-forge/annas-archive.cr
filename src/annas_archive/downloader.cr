@@ -3,9 +3,9 @@ require "digest/md5"
 require "digest/sha256"
 require "compress/zip"
 require "random/secure"
+require "./output"
 
 lib AnnaAtomicFiles
-  fun openat(dirfd : LibC::Int, path : LibC::Char*, flags : LibC::Int, ...) : LibC::Int
   fun linkat(olddirfd : Int32, oldpath : UInt8*, newdirfd : Int32, newpath : UInt8*, flags : Int32) : Int32
   fun unlinkat(dirfd : Int32, path : UInt8*, flags : Int32) : Int32
 end
@@ -48,26 +48,34 @@ module AnnasArchive
       download(resolution.url || raise(Error.new("unsupported_resolution")), destination, expected_md5, format, cancelled, progress)
     end
 
-    def download(url : String, destination : String, expected_md5 : String, format : String? = nil,
+    def download(url : String, destination : String?, expected_md5 : String, format : String? = nil,
                  cancelled : Proc(Bool) = -> { false }, progress : Proc(Int64, Nil)? = nil,
-                 shared_context : TransferContext? = nil, landing : Proc(String, String, String)? = nil) : DownloadedFile
+                 shared_context : TransferContext? = nil, landing : Proc(String, String, String)? = nil,
+                 output_directory : String = ".", prepare_parents : Bool = false) : DownloadedFile
       host = PublicHTTPS.uri(url).host.not_nil!.downcase
       check_cooldown!(host)
       raise Error.new("invalid_input") unless expected_md5.matches?(/\A[a-fA-F0-9]{32}\z/) && (!format || format.in?(%w[epub zip cbz docx pdf rar cbr]))
       published = false
       context = shared_context || TransferContext.new(@policy.timeout, cancelled)
       context.check!
-      parent = File.realpath(File.dirname(destination))
-      name = File.basename(destination)
-      raise Error.new("download_output_invalid") if name.empty? || name.in?({".", ".."}) || name.includes?('\0')
-      dir_fd = LibC.open(parent, LibC::O_RDONLY | LibC::O_NOFOLLOW | LibC::O_CLOEXEC)
-      raise Error.new("download_output_invalid") if dir_fd < 0
-      IO::FileDescriptor.set_blocking(dir_fd, true)
-      directory = IO::FileDescriptor.new(dir_fd)
+      if prepare_parents || destination.nil?
+        prepared = PreparedOutputDirectory.new(destination ? File.dirname(destination) : output_directory, context)
+        parent = prepared.path
+        directory = prepared.directory
+        dir_fd = directory.fd
+      else
+        parent = File.realpath(File.dirname(destination.not_nil!))
+        dir_fd = LibC.open(parent, LibC::O_RDONLY | LibC::O_NOFOLLOW | LibC::O_CLOEXEC)
+        raise Error.new("download_output_invalid") if dir_fd < 0
+        IO::FileDescriptor.set_blocking(dir_fd, true)
+        directory = IO::FileDescriptor.new(dir_fd)
+      end
+      name = destination.try { |path| File.basename(path) }
+      raise Error.new("download_output_invalid") if name && (name.empty? || name.in?({".", ".."}) || name.includes?('\0'))
       info = directory.info
       raise Error.new("download_output_invalid") unless info.directory? && info.owner_id == LibC.getuid.to_s && info.permissions.value & 0o022 == 0
-      target = File.join(parent, name)
-      raise Error.new("download_file_exists") if File.exists?(target) || File.symlink?(target)
+      target = name.try { |value| File.join(parent, value) }
+      raise Error.new("download_file_exists") if target && (File.exists?(target) || File.symlink?(target))
       partial = ".anna-#{Random::Secure.hex(16)}.part"
       fd = AnnaAtomicFiles.openat(dir_fd, partial, LibC::O_RDWR | LibC::O_CREAT | LibC::O_EXCL | LibC::O_NOFOLLOW | LibC::O_CLOEXEC, 0o600_u32)
       raise Error.new("download_output_invalid") if fd < 0
@@ -114,6 +122,11 @@ module AnnasArchive
             end
             inspect_challenge!(response.body, context, String.new(prefix[0, count])) if ["<!doctype", "<html", "<head", "<script", "<body", "<title", "<form"].any? { |start| sniff.starts_with?(start) }
             raise Error.new("download_invalid_response") if ["<!doctype", "<html", "<head", "<script", "<body", "<title", "<form", "<?xml", "{\"", "{\n"].any? { |prefix| sniff.starts_with?(prefix) }
+            unless name
+              name = OutputNaming.filename(response.headers, response.url || transfer_url)
+              target = File.join(parent, name.not_nil!)
+              raise Error.new("download_file_exists") if File.exists?(target.not_nil!) || File.symlink?(target.not_nil!)
+            end
             buffer = prefix
             loop do
               context.check!
@@ -150,13 +163,15 @@ module AnnasArchive
       output.fsync
       context.check!
       raise Error.new("download_output_changed") unless File.info(parent, follow_symlinks: false).same_file?(directory.info)
-      if AnnaAtomicFiles.linkat(dir_fd, partial, dir_fd, name, 0) != 0
+      prepared.try(&.check!)
+      if AnnaAtomicFiles.linkat(dir_fd, partial, dir_fd, name.not_nil!, 0) != 0
         raise Error.new(Errno.value == Errno::EEXIST ? "download_file_exists" : "download_io_error")
       end
       published = true
       sync_directory(directory)
       raise Error.new("download_output_changed") unless File.info(parent, follow_symlinks: false).same_file?(directory.info)
-      DownloadedFile.new(target, total, checksum, sha.final.hexstring, validation)
+      prepared.try(&.check!)
+      DownloadedFile.new(target.not_nil!, total, checksum, sha.final.hexstring, validation)
     rescue ex : Error
       raise Error.new("download_publication_uncertain") if published
       raise ex
