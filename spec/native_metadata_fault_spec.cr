@@ -160,12 +160,12 @@ private class MetadataRawWire < IO
 end
 
 private class MetadataParserTransport < MetadataFaultTransport
-  def initialize(@chunked = "-1\r\n")
+  def initialize(@chunked = "-1\r\n", @raw : String? = nil)
     super()
   end
 
   protected def exchange(uri : URI, address : String, context : AnnasArchive::TransferContext, headers : HTTP::Headers, &block : AnnasArchive::StreamResponse -> Nil) : Nil
-    wire = MetadataRawWire.new("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n" + @chunked)
+    wire = MetadataRawWire.new(@raw || ("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n" + @chunked))
     client = HTTP::Client.new(wire, uri.host.not_nil!, 443)
     client.get(uri.request_target, headers) do |response|
       begin
@@ -180,6 +180,21 @@ private class MetadataParserTransport < MetadataFaultTransport
 end
 
 describe "native HTTP body parser boundary" do
+  {204 => "No Content", 304 => "Not Modified"}.each do |status, reason|
+    it "preserves bodyless #{status} from the real parser through native pages and health" do
+      raw = "HTTP/1.1 #{status} #{reason}\r\nConnection: close\r\n\r\n"
+      HTTP::Client.new(MetadataRawWire.new(raw), "catalog.example.invalid", 443).get("/") do |response|
+        response.status_code.should eq status
+        response.body_io?.should be_nil
+      end
+      transport = MetadataParserTransport.new(raw: raw)
+      page = transport.page("https://catalog.example.invalid/search")
+      page.status.should eq status
+      page.body.should eq ""
+      metadata_fault_client(transport).healthcheck.should eq AnnasArchive::HealthCheck.new(AnnasArchive::HealthStatus::Error, "unavailable")
+    end
+  end
+
   it "closes malformed negative chunks for native pages and structured health" do
     transport = MetadataParserTransport.new
     error = expect_raises(AnnasArchive::Error, "download_network_error") do

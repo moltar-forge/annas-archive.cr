@@ -281,7 +281,9 @@ module AnnasArchive
     end
 
     protected def native_response(response : HTTP::Client::Response, context : TransferContext) : StreamResponse
-      StreamResponse.new(response.status_code, response.headers, NativeBody.new(response.body_io, context))
+      # The real HTTP parser omits body IO for bodyless statuses (e.g. 204/304).
+      body = response.body_io? || IO::Memory.new
+      StreamResponse.new(response.status_code, response.headers, NativeBody.new(body, context))
     end
 
     protected def exchange(uri : URI, address : String, context : TransferContext, headers : HTTP::Headers, &block : StreamResponse -> Nil) : Nil
