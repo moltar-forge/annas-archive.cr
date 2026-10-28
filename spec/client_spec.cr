@@ -180,7 +180,7 @@ describe AnnasArchive::Client do
     end
     client = AnnasArchive::Client.new("https://catalog.example.invalid", fetch)
     expect_raises(AnnasArchive::Error, "invalid_input") { client.search("\n") }
-    expect_raises(AnnasArchive::Error, "invalid_input") { client.detail("https://evil.invalid/md5/#{"1" * 32}") }
+    expect_raises(AnnasArchive::Error, "invalid_input") { client.detail("ftp://evil.invalid/md5/#{"1" * 32}") }
     calls.should eq 0
   end
 end

@@ -28,7 +28,8 @@ copyright/license status from bibliographic text.
 
 `Parser.detail(html, md5, origin)` returns `Detail`, containing `entry`, `description` and
 `Array(Link)`. Each link has `url`, `kind` and `label` fields. A link’s `kind` is
-`browser`, `member` or `external`.
+`browser`, `member` or `external`. `Link.scheme` and `Link.fetchable?` separate
+informational HTTP/magnet/ipfs metadata from potential HTTPS downloads.
 Neither these labels nor an HTTPS scheme prove a URL is safe to fetch. Raw
 metadata and signed link URLs are private/untrusted; sanitize application output
 and never log locators or attach them to error messages.
@@ -75,7 +76,8 @@ applications must still reject formats they cannot import. `detail(md5)` fetches
 `/slow_download/<md5>/<number>/<number>` landing page. Signed query strings are
 preserved; caller-supplied encoded path alternatives and other origins are rejected before HTTP.
 It returns `Resolution`; pass its URL to `Downloader` after any required wait. The metadata client never automatically paginates, sleeps, switches
-mirrors, imports browser cookies or executes scripts. File streaming is a separate
+mirrors or executes scripts. CookieSession can explicitly import a caller-provided
+Netscape export, then be injected into the shared native transport. File streaming is a separate
 `Downloader` API, not an implicit effect of search/record parsing. There are no search caches.
 
 Each client serializes requests and enforces a local minimum interval (30 seconds
@@ -128,8 +130,8 @@ supports default/path-boundary matching, Secure, Expires, Max-Age (including
 deletion), replacement and secure cookie prefixes. Domain cookies are accepted
 only for the response's exact host and never sent to subdomains/other hosts.
 At most 32 cookies of 1024 bytes each are retained; malformed, oversized and
-excess new cookies are ignored. No browser cookie loading, cookie files,
-credentials or cookie logging are added. Redirect/DNS/TLS/proxy policies are
+excess new response cookies are ignored. Optional Netscape imports are explicit,
+scoped and atomic (see below); no browser profile discovery or cookie logging occurs. Redirect/DNS/TLS/proxy policies are
 unchanged. This is a session cookie jar, not browser or HTTP connection pooling.
 
 ## Errors and stability
@@ -198,8 +200,9 @@ not establish comic identity, authenticity, rights, or Imported state.
 Native transport requires HTTPS, excludes private/reserved/literal-IP targets,
 checks every DNS answer and pins the revalidated address while preserving TLS
 hostname verification/SNI. Redirects stay on the exact initial host and stop after
-three hops. No cookies or credentials are loaded from disk/browser; bounded
-same-host response cookies are retained in memory by the shared native transport. Error/redirect bodies are not
+three hops. No cookies are loaded implicitly; an explicit CookieSession import may
+read a caller-selected Netscape file. Bounded same-host response cookies are
+retained in memory by the shared native transport. Error/redirect bodies are not
 drained indefinitely; metadata bodies and headers are bounded. HTTP 429 retains a
 per-host Retry-After cooldown; reuse the downloader rather than recreating it to
 evade that cooldown. The conservative address filter follows the
@@ -223,3 +226,148 @@ Existing files and symlinks are never replaced. `download_publication_uncertain`
 means verified final bytes may exist after a sync/namespace failure; inspect that
 file rather than blindly retrying. Process termination or filesystem failure can leave a private partial;
 partials are never automatically resumed or treated as complete files.
+
+---
+
+# Verified acquisition
+
+`Acquisition.new(origin, transport = NativeHTTPTransport.new)`
+composes a persistent Client and Downloader on one transport/cookie session.
+Use only with content you are authorized to acquire. No live-service reliability
+or full Python parity is claimed.
+
+```crystal
+require "annas_archive"
+
+a = AnnasArchive::Acquisition.new("https://your-configured-mirror.example")
+a.record("/md5/0123456789abcdef0123456789abcdef", "/private/existing/book.epub",
+  format: "epub", max_wait: 300)
+a.download("https://public-file-host.example/signed-url", "/private/existing/file",
+  expected_md5: "0123456789abcdef0123456789abcdef")
+```
+
+## Inputs and selection
+
+Client.detail and Acquisition.record accept trimmed, case-insensitive bare MD5,
+relative /md5/<hash> paths (optional trailing slash), or HTTP(S) record URLs.
+Only the identifier is used: metadata always comes from the configured HTTPS
+origin, never the supplied origin. Credential-bearing URLs are rejected.
+A supplied expected_md5 must match a record identifier. Direct downloads always
+require expected_md5 (the same identifier forms are accepted).
+
+Record acquisition defaults to the first non-member HTTPS link in parser order.
+source: N selects a stable one-based index in Detail.links, including member
+links; invalid indices, no regular source, and checksum mismatch are terminal.
+No automatic mirror/source fallback occurs. HTTP/magnet/ipfs links remain in the
+record list and count toward its bounds; indices describe that full retained list.
+Selecting a non-fetchable source returns `unsupported_source` without fetching it.
+
+Output may be explicit or omitted in Acquisition. An explicit path wins over
+response naming and directory; omitted output uses `directory:` (default `.`).
+Acquisition prepares missing parents privately; low-level Downloader explicit
+output retains its original existing-parent default. Publication remains anchored,
+atomic and no-overwrite;
+partial files are removed on failure. format enables existing format/ZIP-CRC
+validation; without it the result is hash_only. progress receives cumulative
+bytes, not chunk deltas. A signed file is consumed once, never prefetched.
+
+## Scheduling, budgets, errors
+
+- One operation owns one TransferContext, created before metadata. Default total
+  timeout is 300 seconds; DownloadPolicy.timeout must be positive and at most
+  five minutes. It includes metadata, local pacing, countdowns, traversal,
+  transfer, verification and pre-publication checks; no stage resets it.
+- The additional max_wait (default 300, negative invalid) is an elapsed monotonic
+  allowance starting at acquisition of the chosen URL, after record metadata.
+  Network/pacing time during traversal consumes this allowance too. Countdown
+  delay is seconds+1 and must fit entirely. Zero/over-budget returns
+  download_wait_required with retry_after containing the parsed seconds.
+- Only exact configured-origin /slow_download/<lowercase-md5>/<n>/<n> (and its
+  one-shot encoded retry) countdowns may sleep. External countdowns never sleep.
+  wait_progress receives per-second remaining values then final 0 on successful
+  wait completion; interrupted waits need not emit 0.
+- Six attempts maximum; only countdowns start another attempt. A fourth ordinary
+  landing response cannot transition again (download_landing_limit). Cycles,
+  login, unknown/oversized pages and persistent challenges fail closed. Only one
+  same-origin slow challenge rewrite is allowed for a transfer; metadata retains
+  its existing one-shot check=%31 retry. No generic retries exist.
+- A persistent local minimum interval (30 seconds by default, configurable
+  1..3600) spaces configured-origin top-level opens, including compatibility
+  retries (redirect exchanges within an open keep native redirect semantics).
+  Scheduling sleeps in at-most-one-second slices, bounded by the total deadline.
+  Cancellation is checked before/after sleeps, callbacks, requests, and chunks.
+  Injected monotonic clock/sleeper must advance consistently; callbacks must not
+  block indefinitely. A nonadvancing sleeper fails with download_clock_stalled.
+  Calls on one coordinator are serialized; lock queue time
+  precedes operation start and is not charged to the operation deadline.
+- Server 429 is terminal, never automatically retried/slept. Retry-After cooldowns
+  persist across operations and are distinct from local pacing. Reuse the same
+  coordinator instead of constructing one to bypass cooldowns.
+- At most 64 top-level transport opens per operation. Native transport has at
+  most six exchanges per open (default four), so even redirects remain globally
+  bounded (384 exchanges maximum, default 256). HTML stays bounded to 1 MiB;
+  file, archive expansion, DNS, TLS and deadline limits remain enforced.
+
+Explicit HTML download controls may select another public HTTPS host, but HTTP
+redirects are still exact-host only. Every target goes through PublicHTTPS and
+the native public-DNS/TLS checks. HTTP/private addresses, ambient proxies, and
+network-policy bypasses remain prohibited. Query bytes are not decoded/rebuilt;
+relative controls are resolved without parsing signed queries into parameters.
+Injected transports must preserve the same network policy and context checks.
+
+## Browser-session and output options
+
+```crystal
+jar = AnnasArchive::CookieSession.new
+# Caller-provided export only; no automatic browser/profile access.
+jar.import_netscape_file("/private/caller-selected-cookies.txt", origin)
+# Or jar.import_netscape(text_or_io, origin).
+a = AnnasArchive::Acquisition.new(origin, cookies: jar, user_agent: "MyBrowser/1.0")
+a.record(md5, directory: "/private/downloads", format: "epub")
+a.download(file_url, expected_md5: md5, directory: "/private/downloads")
+```
+
+Imports authorize one HTTPS origin. Host-only exports must match exactly;
+Domain exports may match its parent suffix but are stored only for that exact
+host, never its siblings/subdomains. Paths, Secure, expiry (0 means session),
+#HttpOnly_, cookie prefixes and replacement/deletion are respected. The jar
+is not broadened to the export's Domain. Unrelated cookies are not imported.
+A malformed import or capacity overflow leaves the entire existing jar unchanged.
+Inputs are at most 64 KiB, 256 lines, 2048 bytes/line; cookies are at most 1024
+bytes including conservative host/path overhead, 32 per jar across all hosts.
+Fields use printable ASCII cookie syntax (tabs delimit fields); CRLF exports
+are accepted. Errors are closed cookie_import_invalid/too_large/capacity/unreadable
+codes and never include input, paths or cookie values. IO implementations are
+trusted synchronous inputs, not background/unbounded network readers.
+
+User-Agent is 1..512 printable ASCII bytes, nonblank; controls/CRLF are rejected.
+Default remains annas-archive.cr/VERSION. To configure metadata alone, use
+NativeHTTPTransport.new(cookies: jar, user_agent: agent) and its page method;
+share that instance for Client/Downloader. No subclass is needed for configuration.
+
+Automatic names come only from the actual terminal file response: UTF-8
+filename* takes precedence over ordinary quoted/unquoted filename, then effective
+post-redirect URL basename. Invalid UTF-8 bytes are replaced, percent-decoding is
+single-pass, encoded/backslash separators are removed, controls/unsafe Windows
+characters and reserved names are neutralized, and UTF-8 names are capped to
+180 bytes. Empty names become download.bin. Content-Disposition/name input is
+bounded to 8192 bytes. Explicit paths are not renamed and ignore those headers.
+
+Automatic preparation walks from / with no-follow descriptor-relative opens,
+rejecting symlink ancestry and group/world-writable directories (even /tmp).
+Ancestry must be root/caller-owned, the final directory caller-owned, and new
+0700 descendants are created only beneath caller-owned non-shared parents.
+At most 128 components/4096 input bytes are allowed. Inode/permission checks run
+before and after anchored no-overwrite publication. Existing files and symlinks,
+including targets appearing mid-transfer, are never overwritten. Failed transfers
+remove their partial; newly created empty directories are not rolled back.
+A failure after publication remains download_publication_uncertain, not an
+invitation to blindly retry. Low-level Downloader(url, explicit_path, md5) still
+requires an existing safe caller-owned parent by default; only opting into
+prepare_parents (or nil destination plus output_directory) adds preparation.
+
+## Comparison and remaining limitations
+
+See [library comparison](library-parity.md) for source mapping, test evidence and
+explicit remaining differences. CLI packaging, filter expansion and broader
+parity/exception decisions remain separate work; this is not full Python parity.

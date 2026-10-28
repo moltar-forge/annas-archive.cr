@@ -25,7 +25,21 @@ module AnnasArchive
   record Response, status : Int32, body : String, retry_after : Int32? = nil
   record Entry, md5 : String, title : String, language : String?, format : String?, summary : String,
     author : String? = nil, publisher : String? = nil, size : String? = nil, cover_url : String? = nil, url : String? = nil
-  record Link, url : String, kind : String, label : String = ""
+  record Link, url : String, kind : String, label : String = "" do
+    def scheme : String?
+      URI.parse(url).scheme
+    rescue URI::Error
+      nil
+    end
+
+    # Capability, not a DNS/rights guarantee; transport still validates targets.
+    def fetchable? : Bool
+      PublicHTTPS.uri(url)
+      true
+    rescue Error
+      false
+    end
+  end
   record Detail, entry : Entry, links : Array(Link), description : String = ""
   record Resolution, url : String? = nil, wait_seconds : Int32? = nil
 
@@ -191,7 +205,8 @@ module AnnasArchive
       raise Error.new("result_limit") if anchors.size > MAX_RECORD_ANCHORS
       anchors.each do |anchor|
         uri = URI.parse(origin).resolve(anchor["href"])
-        next unless uri.scheme == "https" && uri.host && !uri.user && !uri.password && !uri.fragment
+        next unless uri.scheme.in?({"https", "http", "magnet", "ipfs"}) && !uri.user && !uri.password && !uri.fragment
+        next if uri.scheme.in?({"https", "http"}) && !uri.host
         url = uri.to_s
         raise Error.new("result_limit") if url.bytesize > 4096
         next if seen.includes?(url)
@@ -199,7 +214,7 @@ module AnnasArchive
         kind = uri.path.starts_with?("/fast_download/") ? "member" : uri.path.starts_with?("/slow_download/") ? "browser" : "external"
         label = text(anchor)
         raise Error.new("result_limit") if label.bytesize > 1024
-        links << Link.new(url, kind, label.empty? ? uri.host.not_nil! : label)
+        links << Link.new(url, kind, label.empty? ? (uri.host || uri.scheme.not_nil!) : label)
         raise Error.new("result_limit") if links.size > MAX_RECORD_LINKS
       end
       Detail.new(entry(md5, text(title), summary).copy_with(author: author, publisher: publisher, cover_url: cover,
@@ -281,9 +296,21 @@ module AnnasArchive
       Parser.search(page("/search?#{params}"), @origin, limit)
     end
 
+    # Extract only the identifier; never fetch the supplied origin.
+    def self.record_id(value : String) : String
+      value = value.strip
+      return value.downcase if value.matches?(/\A[a-fA-F0-9]{32}\z/)
+      uri = URI.parse(value)
+      raise Error.new("invalid_input") if uri.user || uri.password || (uri.scheme && !uri.scheme.in?({"http", "https"})) || (uri.scheme && !uri.host) || (!uri.scheme && uri.host)
+      match = uri.path.match(/\A\/md5\/([a-fA-F0-9]{32})\/?\z/) || raise Error.new("invalid_input")
+      match[1].downcase
+    rescue URI::Error
+      raise Error.new("invalid_input")
+    end
+
     def detail(md5 : String) : Detail
-      raise Error.new("invalid_input") unless md5.matches?(/\A[a-fA-F0-9]{32}\z/)
-      Parser.detail(page("/md5/#{md5.downcase}"), md5.downcase, @origin)
+      md5 = Client.record_id(md5)
+      Parser.detail(page("/md5/#{md5}"), md5, @origin)
     end
 
     def resolve(url : String) : Resolution

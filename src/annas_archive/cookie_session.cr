@@ -2,13 +2,93 @@ require "http/cookie"
 
 module AnnasArchive
   # Conservative RFC6265 subset: domain cookies are narrowed to the exact host.
-  # Memory-only, bounded to 32 cookies of at most 1024 bytes; no disk import.
+  # Bounded to 32 cookies of at most 1024 bytes; explicit scoped import only.
   class CookieSession
     private record Stored, host : String, path : String, cookie : HTTP::Cookie, expires : Time?
     @cookies = [] of Stored
     @lock = Mutex.new
 
     def initialize(@clock : Proc(Time) = -> { Time.utc })
+    end
+
+    MAX_IMPORT_BYTES = 65_536
+    MAX_IMPORT_LINES =    256
+
+    # No profile discovery or ambient file access. A malformed import never
+    # partially mutates the session. Domain exports narrow to this exact host.
+    def import_netscape(input : IO, origin : String) : Nil
+      output = IO::Memory.new
+      buffer = Bytes.new(4096)
+      loop do
+        count = input.read(buffer)
+        break if count == 0
+        raise Error.new("cookie_import_too_large") if output.size + count > MAX_IMPORT_BYTES
+        output.write(buffer[0, count])
+      end
+      import_netscape(output.to_s, origin)
+    rescue ex : Error
+      raise ex
+    rescue
+      raise Error.new("cookie_import_unreadable")
+    end
+
+    def import_netscape_file(path : String, origin : String) : Nil
+      File.open(path) { |input| import_netscape(input, origin) }
+    rescue ex : Error
+      raise ex
+    rescue
+      raise Error.new("cookie_import_unreadable")
+    end
+
+    def import_netscape(input : String, origin : String) : Nil
+      raise Error.new("cookie_import_too_large") if input.bytesize > MAX_IMPORT_BYTES || input.count('\n') + 1 > MAX_IMPORT_LINES
+      raise Error.new("cookie_import_invalid") unless input.valid_encoding? && input.each_byte.all? { |c| c.in?(32..126) || c.in?({9_u8, 10_u8, 13_u8}) }
+      uri = PublicHTTPS.uri(origin)
+      raise Error.new("cookie_import_invalid") unless uri.path.in?({"", "/"}) && !uri.query
+      host = uri.host.not_nil!.downcase
+      staged = [] of Stored
+      input.each_line do |line|
+        raise Error.new("cookie_import_too_large") if line.bytesize > 2048
+        line = line.rstrip('\r')
+        http_only = line.starts_with?("#HttpOnly_")
+        line = line.byte_slice(10) if http_only
+        next if line.empty? || line.starts_with?('#')
+        raise Error.new("cookie_import_invalid") unless line.each_byte.all? { |c| c == 9 || c.in?(32..126) }
+        fields = line.split('\t')
+        raise Error.new("cookie_import_invalid") unless fields.size == 7
+        domain, subdomains, path, secure_text, expiry, name, value = fields
+        raise Error.new("cookie_import_invalid") unless subdomains.in?({"TRUE", "FALSE"}) && secure_text.in?({"TRUE", "FALSE"}) && expiry.matches?(/\A\d{1,18}\z/)
+        domain = domain.downcase
+        plain = domain.lchop('.')
+        raise Error.new("cookie_import_invalid") unless plain.matches?(/\A[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\z/) && !plain.includes?("..") && (!domain.starts_with?('.') || subdomains == "TRUE")
+        secure = secure_text == "TRUE"
+        raise Error.new("cookie_import_invalid") unless path.starts_with?('/') && path.each_byte.all? { |c| c.in?(33..126) && c != 59 }
+        raise Error.new("cookie_import_invalid") unless name.matches?(/\A[!#$%&'*+.^_`|~0-9a-zA-Z-]+\z/)
+        raise Error.new("cookie_import_invalid") unless value.each_byte.all? { |c| c == 33 || c.in?(35..43) || c.in?(45..58) || c.in?(60..91) || c.in?(93..126) }
+        raise Error.new("cookie_import_invalid") if name.starts_with?("__Secure-") && !secure
+        raise Error.new("cookie_import_invalid") if name.starts_with?("__Host-") && (!secure || path != "/" || subdomains == "TRUE" || domain.starts_with?('.'))
+        raise Error.new("cookie_import_too_large") if host.bytesize + path.bytesize + name.bytesize + value.bytesize + 64 > 1024
+        seconds = expiry.to_i64
+        expires = seconds == 0 ? nil : Time.unix(seconds)
+        next unless host == plain || subdomains == "TRUE" && host.ends_with?(".#{plain}")
+        cookie = HTTP::Cookie.new(name, value, path: path, secure: secure, http_only: http_only)
+        staged << Stored.new(host, path, cookie, expires)
+      end
+      @lock.synchronize do
+        merged = @cookies.reject { |item| item.expires.try { |t| t <= @clock.call } || false }
+        staged.each do |item|
+          merged.reject! { |old| old.host == item.host && old.path == item.path && old.cookie.name == item.cookie.name }
+          next if item.expires.try { |t| t <= @clock.call }
+          raise Error.new("cookie_import_capacity") if merged.size >= 32
+          merged << item
+        end
+        @cookies = merged
+      end
+    rescue ex : Error
+      raise ex if ex.code.starts_with?("cookie_import_")
+      raise Error.new("cookie_import_invalid")
+    rescue
+      raise Error.new("cookie_import_invalid")
     end
 
     def retain(uri : URI, headers : HTTP::Headers) : Nil
