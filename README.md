@@ -4,8 +4,7 @@ Native Crystal library for searching Anna’s Archive, reading records, resolvin
 download links and streaming files with hash and format validation. No Python,
 CLI or browser runtime required.
 
-**Experimental:** live search works, but end-to-end live downloads remain
-unverified. This is an unofficial HTML interface; site changes can break it.
+This is an unofficial HTML interface; site changes can break it.
 
 ## Installation
 

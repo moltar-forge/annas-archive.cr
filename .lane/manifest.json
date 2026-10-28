@@ -1,32 +1,71 @@
 {
-  "task": "Port pinned Python recognized-challenge workaround natively with bounded same-host session cookies",
-  "branch": "feat/python-challenge-retries",
-  "base": "bd0de799b9a617aca572c5768c0baf6fe70f4020",
-  "reference": {
-    "repository": "https://github.com/meurz/annas-archive-cli",
-    "revision": "001ab3250e9cd829e7225b6385e3fb8aac999090",
-    "license": "MIT",
-    "inspected": [
-      "src/anna/client.py",
-      "tests/test_anna.py",
-      "src/anna/parsing.py"
+  "schema_version": 1,
+  "lane_id": "anna-record-link-cap",
+  "repo": "annas-archive.cr",
+  "issue": {
+    "type": "hotfix_note",
+    "id": ".lane/hotfix.md",
+    "title": "Live record has 38 download links; parser fails at 20"
+  },
+  "parent": {
+    "session_id": "agent:main:telegram:group:-1003827263701:topic:6125",
+    "callback_route": "parent"
+  },
+  "child": {
+    "kind": "cc-dev",
+    "task_id": "d40727cb-57f6-4aab-a454-4d1cdbf4d199",
+    "session_id": "agent:cc-dev:subagent:855b466f-64e5-4c47-9f4e-925ace3557bb",
+    "status": "complete"
+  },
+  "worktree": {
+    "path": "/Users/moltar/.openclaw/workspace/repos/_lanes/annas-archive/record-link-cap",
+    "base_branch": "origin/main",
+    "branch": "fix/record-link-cap"
+  },
+  "status": "complete",
+  "created_at": "2026-10-28T18:56:11.708Z",
+  "updated_at": "2026-10-28T18:59:50.131Z",
+  "last_heartbeat_at": "",
+  "last_known_step": "parent verified implementation, local tests, live download and published PR; documentation/evidence finalizing",
+  "last_command": "",
+  "acceptance_commands": [
+    "crystal spec",
+    "crystal tool format --check src spec examples",
+    "git diff --check"
+  ],
+  "terminal_evidence": {
+    "path": ".lane/evidence.md",
+    "exists": true,
+    "child_reported_complete": true,
+    "parent_verified": true
+  },
+  "pr": {
+    "number": 3,
+    "url": "https://github.com/moltar-forge/annas-archive.cr/pull/3",
+    "state": "OPEN",
+    "checks_state": "no CI configured; local checks passed"
+  },
+  "scope": {
+    "expected_files": [
+      "src/annas_archive/client.cr",
+      "spec",
+      "README.md",
+      "docs/api.md",
+      ".lane/*"
+    ],
+    "forbidden_areas": [
+      "deployment",
+      "transport security",
+      "release tags",
+      "unrelated features"
     ]
   },
-  "scope": [
-    "One-shot raw query append for metadata challenges",
-    "One-shot original configured-mirror slow route raw-prefix retry",
-    "Bounded native response cookie session",
-    "Offline specs/differential evidence and compatibility documentation"
-  ],
-  "non_goals": [
-    "Live probes",
-    "Solver/browser/Python runtime dependency",
-    "Mirror, proxy, redirect or SSRF policy expansion",
-    "Production/deployment changes",
-    "Push, PR or merge"
-  ],
-  "status": "ready_for_parent_verification",
-  "completion_owner": "parent",
-  "evidence": ".lane/evidence.md",
-  "recovery": "Dedicated clean branch; parent can inspect/revert the single scoped port commit. No deployed changes or external publication. Temporary offline reference and venv are under /tmp/anna-challenge-*."
+  "recovery": {
+    "required": false,
+    "reason": "",
+    "restart_command": "",
+    "inspect_command": "node tools/chaos-lane-watchdog.mjs --lanes-root repos/_lanes/chaos-codex",
+    "abandon_command": ""
+  },
+  "notes": []
 }
