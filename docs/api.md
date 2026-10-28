@@ -152,7 +152,7 @@ closed code, never source HTML, credentials, transport exception text or a URL.
 | `page_too_large` / `result_limit` | Bounded parser limits exceeded |
 
 Only explicit empty-search text yields an empty result list. Metadata pages are
-limited to 1 MiB; searches to 50 distinct records; record links to 20. Relative and verified same-origin
+limited to 1 MiB; searches to 50 distinct records; record links to 128 unique URLs (at most 256 source anchors scanned). Relative and verified same-origin
 `/md5/<hash>` search links are interpreted as identifiers; their canonical record
 URLs are reconstructed and foreign origins are ignored. Hidden result comments are
 read only inside `js-scroll-hidden` containers. No external entities are fetched.
