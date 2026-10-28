@@ -41,10 +41,33 @@ Search returns one page of `Entry` records. Filters include language, format,
 content type, sort and page. Clients enforce a 30-second minimum request interval
 by default; callers schedule later requests and handle `rate_limited` errors.
 
+## Comic acquisition
+
+Reuse one coordinator for metadata, session cookies, pacing and downloads:
+
+```crystal
+client = AnnasArchive::Acquisition.new(origin)
+health = client.healthcheck # Search reachability only, not download readiness.
+entries = client.search("Example Comic", formats: ["cbz", "cbr"], language: "en")
+# The embedding application selects/matches a record, not necessarily the first.
+selected = entries.first?
+if selected
+  detail = client.detail(selected.md5) # Ordered links; source: N is one-based.
+  file = client.record(selected.md5, directory: "/private/comics", format: selected.format)
+end
+```
+
+Use only for authorized content. Record acquisition owns bounded slow-route
+countdowns and validates before atomic, no-overwrite publication. CBZ uses ZIP
+CRC checks; CBR uses MD5 plus RAR signature only, **not** full RAR validation.
+Mylar4 owns issue/edition matching, full importer validation and imported state.
+See [integration details](docs/api.md#comic-integration) and the
+[offline example](examples/comic_workflow_fixture.cr).
+
 ## Records and downloads
 
 - `client.detail(md5)` returns metadata, a description and download links.
-- `client.resolve(url)` reads a same-origin slow-download landing page and returns
+- Low-level `Client#resolve(url)` reads a same-origin slow-download page and returns
   a `Resolution` containing a file URL or countdown. Callers schedule countdowns.
 - `Downloader#download` accepts a URL or resolved `Resolution`, destination,
   expected MD5 and optional format. It returns the path, byte count, MD5, SHA-256
@@ -60,6 +83,8 @@ without making network requests.
 
 ## Limits
 
+- `healthcheck` reports structured search health, including challenge, rate limit,
+  network and layout failures; valid empty searches are working.
 - Recognized browser checks receive one compatibility retry. Persistent
   challenges return `browser_verification_required`; there is no CAPTCHA solver.
 - Slow-route download retries require an explicit `origin:` on `Downloader`.

@@ -131,7 +131,7 @@ describe "native challenge compatibility" do
     end
     calls = 0
     client = AnnasArchive::Client.new("https://catalog.example.invalid", ->(_url : String) { calls += 1; raise "secret"; AnnasArchive::Response.new(200, "") })
-    expect_raises(AnnasArchive::Error, "network_error") { client.search("x") }
+    expect_raises(Exception, "secret") { client.search("x") }
     calls.should eq 1
   end
 

@@ -86,6 +86,50 @@ upstream rate allowance. HTTP 429 extends that cooldown using bounded supplied
 `retry_after` seconds; callers own any later scheduling. A request is charged even
 if its transport fails. Do not recreate clients to evade cooldowns.
 
+## Mirror health
+
+```crystal
+health = client.healthcheck
+if health.status.rate_limit?
+  # Schedule a later operation using health.retry_after; never recreate to evade it.
+end
+```
+
+Available on both Client and Acquisition. The fixed probe is `search("comic",
+formats: ["cbz", "cbr"], limit: 1)`: one bounded metadata page, at most one
+existing challenge retry, local truncation to one record. It uses the configured
+mirror and persistent session/pacing/cooldowns; no discovery or mirror switching.
+Valid parsed results **or explicit empty-search text** mean Working. A successful
+search does not prove authentication, membership, file availability or download
+readiness. It does not download a file.
+
+HealthCheck fields are `status : HealthStatus`, nullable `error_code : String?`
+and nullable `retry_after : Int32?` (seconds). Enum states:
+
+- Working: parsed search, including a valid empty search; no error fields.
+- Challenge: `browser_verification_required` after the configured retry policy.
+- RateLimit: `rate_limited` from local pacing or server cooldown; retains retry_after.
+- Network: `network_error`, `download_network_error`, `download_timeout`,
+  `download_dns_failed` or `download_resolver_busy`, including a total deadline
+  spent in local pacing.
+- Layout: `unrecognized_page`, `malformed_response`, `page_too_large` or `result_limit`.
+- Error: other typed failures, including auth/access denial, unsafe transport
+  policy, cancellation and clock faults. The original closed error code remains.
+
+The result contains no origin, source locator, HTML, cookie or exception message.
+Only typed AnnasArchive::Error failures are classified. Metadata fetch IO::Error
+is closed to network_error; arbitrary programmer exceptions from injected
+callbacks propagate, rather than being mislabeled as network health. Custom
+transports must translate operational failures to IO::Error or existing closed
+AnnasArchive::Error codes, never embed private data in error codes. Do not log
+arbitrary callback exception messages. This narrows the former blanket metadata
+exception rescue; the file-download error/publication contract is unchanged.
+
+Acquisition.healthcheck(cancelled: -> { false }) shares its normal total operation
+deadline, bounded cancellable pacing and native network policy. Each probe is an
+operation on the same coordinator, not a fresh session. Client.healthcheck uses
+Client's non-sleeping minimum interval and the injected transport's page deadline.
+
 ## Challenge retries
 
 Enabled by default for `Client`; set `challenge_retries: false` to opt out.
@@ -146,7 +190,7 @@ closed code, never source HTML, credentials, transport exception text or a URL.
 | `authentication_required` | HTTP 401 |
 | `access_denied` | HTTP 403 without a recognized challenge |
 | `rate_limited` | HTTP 429 or local cooldown |
-| `network_error` | Injected transport raised an exception |
+| `network_error` | Injected metadata transport raised IO::Error (programmer faults propagate) |
 | `unavailable` | Other non-200 HTTP response |
 | `unrecognized_page` | Layout not recognized; never counted as no results |
 | `unsupported_resolution` | No recognized explicit file control or countdown |
@@ -245,6 +289,49 @@ a.record("/md5/0123456789abcdef0123456789abcdef", "/private/existing/book.epub",
 a.download("https://public-file-host.example/signed-url", "/private/existing/file",
   expected_md5: "0123456789abcdef0123456789abcdef")
 ```
+
+## Comic integration
+
+Use Acquisition.search(query, **filters) and Acquisition.detail(value) to keep
+metadata, health and record/download operations on one persistent transport,
+clock, pacing scheduler and cookie jar. Search filters and return types are the
+same as Client's; each metadata call has the configured total operation timeout.
+Calls serialize and retain cooldowns. No caller-owned landing/wait loop is needed.
+
+The embedding application selects a search record and may display Detail.links
+in retained order. Pass source: N to record for an explicit one-based source, or
+omit it for the first non-member fetchable HTTPS source. record refetches detail
+under the same policy before selection (no cache or file preflight); indices are
+stable for that page, not guaranteed across upstream page changes. The caller
+must handle terminal failures, not silently mark an issue acquired or imported.
+
+Always pass a supported comic format hint (cbz/cbr) when format validation is
+needed: no hint remains hash_only. CBZ validation checks ZIP structure/CRCs, not
+whether entries are images or the requested issue. CBR validation is RAR signature
+plus mandatory MD5, not a full RAR archive/decompression/CRC check. Mylar4 owns
+issue/edition identity, image/import checks and imported-state transitions.
+
+Acquisition defaults remain 128 MiB transferred, 512 MiB expanded, 10,000 ZIP
+entries and 300 seconds **total per operation**, including pacing, countdown,
+transfer and verification. A large comic/collection or slow connection can exceed
+these; failure does not imply a corrupt or unavailable issue. Configure a reviewed
+DownloadPolicy explicitly, for example:
+
+```crystal
+policy = AnnasArchive::DownloadPolicy.new(max_bytes: 268_435_456_i64,
+  max_uncompressed_bytes: 1_073_741_824_i64, max_entries: 20_000, timeout: 300.seconds)
+client = AnnasArchive::Acquisition.new(origin, AnnasArchive::NativeHTTPTransport.new, policy)
+```
+
+Byte/expanded limits may be 1..2 GiB, entries 1..65,535 and timeout positive up to
+300 seconds. max_wait cannot extend that deadline. Defaults are not automatically
+weakened for comics. Native public HTTPS/DNS/TLS, signed-query/session bounds,
+atomic no-overwrite publication and mandatory expected MD5 remain enforced.
+For an already selected direct URL, use client.download(url, expected_md5: md5,
+format: "cbz", directory: private_directory); it does not select a record/source.
+
+[Runnable offline workflow](../examples/comic_workflow_fixture.cr) uses synthetic
+metadata and a generated ZIP; it is not evidence of live-service reliability.
 
 ## Inputs and selection
 
@@ -369,5 +456,6 @@ prepare_parents (or nil destination plus output_directory) adds preparation.
 ## Comparison and remaining limitations
 
 See [library comparison](library-parity.md) for source mapping, test evidence and
-explicit remaining differences. CLI packaging, filter expansion and broader
-parity/exception decisions remain separate work; this is not full Python parity.
+explicit remaining differences. Executable CLI and proxy parity are excluded;
+checksum-optional downloads remain deferred, not an unchecked mode. This is not
+full Python parity or a Mylar4 integration/deployment.
