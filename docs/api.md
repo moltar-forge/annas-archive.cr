@@ -127,8 +127,9 @@ exception rescue; the file-download error/publication contract is unchanged.
 Native page operations scope that distinction on the existing TransferContext
 without resetting its deadline: resolver/exchange programmer faults propagate,
 including faults returned from the bounded DNS worker. Native IO/TLS and actual
-HTTP wire/parser failures remain closed operational errors. The metadata scope
-is restored on success or failure, so subsequent file transfers retain their
+HTTP wire/parser failures (including malformed chunked body reads) remain closed
+operational errors at the owned native IO boundary, not around caller callbacks.
+The metadata scope is restored on success or failure, so subsequent file transfers retain their
 existing closed errors and partial-cleanup/publication behavior.
 
 Acquisition.healthcheck(cancelled: -> { false }) shares its normal total operation

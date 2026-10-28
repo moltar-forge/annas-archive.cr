@@ -143,3 +143,73 @@ describe "native metadata exception boundary" do
     end
   end
 end
+
+# A duplex wire fixture: writes are request bytes, reads are a raw HTTP response.
+# HTTP::Client#get supplies the real Crystal chunk parser, without any sockets.
+private class MetadataRawWire < IO
+  def initialize(raw : String)
+    @input = IO::Memory.new(raw)
+  end
+
+  def read(slice : Bytes) : Int32
+    @input.read(slice)
+  end
+
+  def write(slice : Bytes) : Nil
+  end
+end
+
+private class MetadataParserTransport < MetadataFaultTransport
+  def initialize(@chunked = "-1\r\n")
+    super()
+  end
+
+  protected def exchange(uri : URI, address : String, context : AnnasArchive::TransferContext, headers : HTTP::Headers, &block : AnnasArchive::StreamResponse -> Nil) : Nil
+    wire = MetadataRawWire.new("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n" + @chunked)
+    client = HTTP::Client.new(wire, uri.host.not_nil!, 443)
+    client.get(uri.request_target, headers) do |response|
+      begin
+        yield native_response(response, context)
+      ensure
+        client.close
+      end
+    end
+  ensure
+    client.try(&.close)
+  end
+end
+
+describe "native HTTP body parser boundary" do
+  it "closes malformed negative chunks for native pages and structured health" do
+    transport = MetadataParserTransport.new
+    error = expect_raises(AnnasArchive::Error, "download_network_error") do
+      transport.page("https://catalog.example.invalid/search")
+    end
+    error.message.should eq "download_network_error"
+    metadata_fault_client(transport).healthcheck.should eq AnnasArchive::HealthCheck.new(AnnasArchive::HealthStatus::Network, "download_network_error")
+    metadata_fault_directory do |dir, path|
+      expect_raises(AnnasArchive::Error, "download_network_error") do
+        AnnasArchive::Downloader.new(transport).download("https://catalog.example.invalid/file", path, "a" * 32, "cbz")
+      end
+      Dir.children(dir).should be_empty
+    end
+  end
+
+  it "accepts a valid chunked empty search through the same native body adapter" do
+    body = "<p>No results</p>"
+    transport = MetadataParserTransport.new(body.bytesize.to_s(16) + "\r\n" + body + "\r\n0\r\n\r\n")
+    transport.page("https://catalog.example.invalid/search").body.should eq body
+    metadata_fault_client(transport).healthcheck.status.should eq AnnasArchive::HealthStatus::Working
+  end
+
+  it "still propagates genuine response callback programmer faults" do
+    fault = ArgumentError.new("synthetic callback programmer fault")
+    context = AnnasArchive::TransferContext.new
+    expect_raises(ArgumentError) do
+      context.with_metadata do
+        MetadataParserTransport.new.open("https://catalog.example.invalid/file", context) { |_| raise fault }
+      end
+    end.should be fault
+    context.metadata?.should be_false
+  end
+end

@@ -54,6 +54,27 @@ module AnnasArchive
 
   record StreamResponse, status : Int32, headers : HTTP::Headers, body : IO, url : String? = nil
 
+  # Only native HTTP body reads are wire/parser operations. Do not wrap caller
+  # callbacks or injected transport IO: their programmer faults must propagate.
+  private class NativeBody < IO
+    def initialize(@body : IO, @context : TransferContext)
+    end
+
+    def read(slice : Bytes) : Int32
+      @context.check!
+      begin
+        @body.read(slice)
+      rescue
+        @context.check!
+        raise Error.new("download_network_error")
+      end
+    end
+
+    def write(slice : Bytes) : NoReturn
+      raise IO::Error.new("read-only native response")
+    end
+  end
+
   abstract class StreamTransport
     abstract def open(url : String, context : TransferContext, &block : StreamResponse -> Nil) : Nil
 
@@ -259,6 +280,10 @@ module AnnasArchive
       exchange(uri, address, context, headers) { |response| yield response }
     end
 
+    protected def native_response(response : HTTP::Client::Response, context : TransferContext) : StreamResponse
+      StreamResponse.new(response.status_code, response.headers, NativeBody.new(response.body_io, context))
+    end
+
     protected def exchange(uri : URI, address : String, context : TransferContext, headers : HTTP::Headers, &block : StreamResponse -> Nil) : Nil
       ip = Socket::IPAddress.new(address, 443)
       socket = Socket.tcp(ip.family)
@@ -288,7 +313,7 @@ module AnnasArchive
         begin
           client.get(uri.request_target, headers) do |response|
             begin
-              yield StreamResponse.new(response.status_code, response.headers, response.body_io)
+              yield native_response(response, context)
             rescue ex
               callback_fault = true
               raise ex
