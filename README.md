@@ -4,9 +4,7 @@ Native Crystal library for searching Anna’s Archive, reading records, resolvin
 download links and streaming files with hash and format validation. No Python,
 CLI or browser runtime required.
 
-**Experimental:** live search works, but end-to-end live downloads remain
-unverified. Records with more than 20 download links currently fail with
-`result_limit`. This is an unofficial HTML interface; site changes can break it.
+This is an unofficial HTML interface; site changes can break it.
 
 ## Installation
 
@@ -67,8 +65,9 @@ without making network requests.
 - Slow-route download retries require an explicit `origin:` on `Downloader`.
 - Native transport requires public HTTPS, validates DNS/TLS and confines redirects
   and session cookies to the exact host. Ambient proxies require a custom transport.
-- Default bounds: 1 MiB metadata pages, 50 search results, 20 record links;
-  downloads allow 128 MiB transferred, 512 MiB expanded and 60 seconds.
+- Default bounds: 1 MiB metadata pages, 50 search results, 128 unique valid record links
+  from at most 256 source anchors. Downloads allow 128 MiB transferred,
+  512 MiB expanded and 60 seconds.
 - No member API, browser-cookie import, automatic pagination, mirror switching,
   resumable downloads or comic-library import.
 - Metadata and file validation do not establish edition identity or permission to

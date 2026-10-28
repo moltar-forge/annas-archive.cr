@@ -1,0 +1,2 @@
+# Record link cap hotfix
+Live Pride and Prejudice record dba7a9943ea918a5afd2b170527fca13 has 38 unique valid links (21 member,16 slow,1 external), causing Parser.detail to throw result_limit at 21. Accept all 38 while retaining a documented finite resource bound, stable order, URL filtering, exact signed-query bytes and dedupe; test original boundary, observed 38, new boundary and overflow. Do not arbitrarily truncate or hide usable slow links behind member links. No unrelated features. Verify crystal spec, format, diff; parent separately tests live locally.
