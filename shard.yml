@@ -1,5 +1,5 @@
 name: annas_archive
-version: 0.2.0
-description: Bounded metadata parsing for Anna's Archive public HTML pages
+version: 0.3.0
+description: Native bounded metadata, challenge compatibility retries and verified downloads
 crystal: ">= 1.20.0, < 2.0.0"
 license: MIT

@@ -41,7 +41,7 @@ for left,right in zip(*outputs,strict=True):
     name=left['name']; equal=normalize(left)==normalize(right)
     status='match' if equal else 'intentional' if name in intentional else 'mismatch'
     rows.append(dict(name=name,status=status,reason=intentional.get(name) if status=='intentional' else None,python=left,crystal=right))
-report=dict(reference_commit='001ab3250e9cd829e7225b6385e3fb8aac999090',shard_baseline='ae5274a406365dc5dbd30179c6a7414a57f69bf2',network='disabled; fixtures only; challenge-retry and downloader methods disabled',rows=rows)
+report=dict(reference_commit='001ab3250e9cd829e7225b6385e3fb8aac999090',shard_baseline='ae5274a406365dc5dbd30179c6a7414a57f69bf2',network='disabled; fixtures only; Python challenge-retry and downloader methods disabled; native default retries enabled' ,rows=rows)
 Path(args.output).write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
 for row in rows: print(row['status'].upper(),row['name'])
 counts={status:sum(row['status']==status for row in rows) for status in ['match','intentional','mismatch']}

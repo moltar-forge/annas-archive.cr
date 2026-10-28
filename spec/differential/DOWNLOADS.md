@@ -59,7 +59,7 @@ Anna validation/adapter/PostgreSQL examples. The native POSIX declarations coexi
 with the application bindings. Mylar source and its public dependency pin were
 not changed.
 
-## Verified live boundary
+## Historical live evidence boundary (not re-tested by this port)
 
 A separate Toshi task recorded a successful Python search on 2026-10-28 at
 16:36:48–16:37:10 UTC: installed version `0.2.0rc4`, `.gl` default origin,
@@ -91,4 +91,8 @@ exact ordinary exchanges should be verified before comparing live clients there.
 
 Live native search → download remains unverified. The original Mylar failure's
 upstream response was not retained, so its exact cause remains unknown. No account,
-API key, CAPTCHA bypass, cookie extraction or protected-route workaround was used.
+API key, CAPTCHA bypass, cookie extraction or protected-route workaround was used
+in those historical probes. The 0.3.0 port adds the pinned one-shot compatibility
+retries and bounded response-cookie retention, exercised offline only. See
+[CHALLENGES.md](CHALLENGES.md); the historical network results do not prove the
+new code works against the live service.

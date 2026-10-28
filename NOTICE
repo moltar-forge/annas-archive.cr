@@ -2,12 +2,15 @@ Interface reference: https://github.com/meurz/annas-archive-cli
 Reference revision: 001ab3250e9cd829e7225b6385e3fb8aac999090
 Reference license: MIT, Copyright (c) 2026 Anna's Archive CLI contributors.
 
-The Crystal implementation and synthetic fixtures were independently written.
+The Crystal implementation and synthetic fixtures were independently written,
+including a native adaptation of the pinned MIT-licensed client's one-shot
+challenge query/path retries (src/anna/client.py).
 The four reduced HTML fixtures in spec/fixtures/reference are from the pinned
 MIT-licensed reference repository. Its full license is retained beside them.
 The differential harness imports separately supplied, hash-pinned reference
 modules for offline comparisons; it does not distribute the Python CLI.
-The reference's challenge-related URL encoding retries are not implemented.
+The reference's MIT attribution and license are retained; no Python runtime is
+required by the shard.
 
 The downloadable EPUB fixture is generated from original synthetic text and
 released under CC0-1.0. It contains no third-party ebook content.

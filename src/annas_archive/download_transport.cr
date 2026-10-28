@@ -1,4 +1,5 @@
 require "http/client"
+require "./cookie_session"
 require "socket"
 require "openssl"
 
@@ -166,7 +167,7 @@ module AnnasArchive
   end
 
   class NativeHTTPTransport < StreamTransport
-    def initialize(@resolver : PublicResolver = PublicResolver.new, @max_redirects : Int32 = 3)
+    def initialize(@resolver : PublicResolver = PublicResolver.new, @max_redirects : Int32 = 3, @cookies : CookieSession = CookieSession.new)
       raise Error.new("invalid_input") unless @max_redirects.in?(0..5)
     end
 
@@ -183,6 +184,7 @@ module AnnasArchive
         address = addresses(current.host.not_nil!, context).first
         redirect : URI? = nil
         perform(current, address, context) do |response|
+          @cookies.retain(current, response.headers)
           if response.status.in?({301, 302, 303, 307, 308})
             raise Error.new("download_redirect_limit") if hop == @max_redirects
             locations = response.headers.get?("Location")
@@ -222,6 +224,14 @@ module AnnasArchive
     end
 
     protected def perform(uri : URI, address : String, context : TransferContext, &block : StreamResponse -> Nil) : Nil
+      headers = HTTP::Headers{"Host" => uri.host.not_nil!, "Accept-Encoding" => "identity", "User-Agent" => "annas-archive.cr/#{VERSION}"}
+      if value = @cookies.header(uri)
+        headers["Cookie"] = value
+      end
+      exchange(uri, address, context, headers) { |response| yield response }
+    end
+
+    protected def exchange(uri : URI, address : String, context : TransferContext, headers : HTTP::Headers, &block : StreamResponse -> Nil) : Nil
       ip = Socket::IPAddress.new(address, 443)
       socket = Socket.tcp(ip.family)
       stop = Channel(Nil).new(1)
@@ -246,7 +256,6 @@ module AnnasArchive
         connect_socket(socket, ip, context)
         tls = OpenSSL::SSL::Socket::Client.new(socket, context: OpenSSL::SSL::Context::Client.new, sync_close: true, hostname: uri.host.not_nil!)
         client = HTTP::Client.new(tls, uri.host.not_nil!, 443)
-        headers = HTTP::Headers{"Host" => uri.host.not_nil!, "Accept-Encoding" => "identity", "User-Agent" => "annas-archive.cr/#{VERSION}"}
         client.get(uri.request_target, headers) do |response|
           begin
             yield StreamResponse.new(response.status_code, response.headers, response.body_io)

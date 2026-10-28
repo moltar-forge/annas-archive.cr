@@ -6,8 +6,8 @@ not verified.** No CLI, Python, browser runtime or account is used by this shard
 
 The current implementation provides bounded search/record parsing and a client
 with injectable transport, accessible landing-page resolution, and a bounded
-streaming file downloader with native HTTPS transport. It does **not** resolve
-protected download landing pages. Links from record pages are metadata, not validated
+streaming file downloader with native HTTPS transport and one-shot compatibility
+retries for recognized challenges. Unresolved protected pages stop with an error. Links from record pages are metadata, not validated
 permission or download authority. This is an unofficial HTML interface, not an
 Anna’s Archive supported search API. Layout changes can break it.
 
@@ -62,7 +62,7 @@ and never log locators or attach them to error messages.
 `Resolution` with either `url` or `wait_seconds`; it performs no request or wait.
 The caller must validate every returned URL against its own transport policy and
 schedule any countdown. Unknown controls, login forms and challenges stop with
-errors. Signed query values are preserved without encoding workarounds.
+errors. Parsing itself never retries or changes signed query values.
 
 ## Client and transport boundary
 
@@ -77,7 +77,7 @@ client = AnnasArchive::Client.new("https://catalog.example.invalid", transport)
 puts client.search("Example Comic 001 (2020)", language: "en", format: "cbz").size
 ```
 
-`Client.new(origin, fetch, delay_seconds: 30, clock: ...)` accepts a verified HTTPS
+`Client.new(origin, fetch, delay_seconds: 30, clock: ..., challenge_retries: true)` accepts a verified HTTPS
 origin and `Proc(String, Response)`. `Response` contains HTTP `status`, body and
 optional integer `retry_after` seconds. A production transport must enforce exact
 host/DNS/redirect policies, TLS validation, body limits and deadlines **before**
@@ -88,18 +88,18 @@ links. `NativeHTTPTransport#page` provides this bounded metadata transport;
 custom transports remain responsible for enforcing the same policy.
 
 `search(query, language: nil, format: nil, languages: [], formats: [], content: [],
-page: nil, sort: nil, limit: nil)` fetches exactly one `/search` page. Scalar arguments remain
+page: nil, sort: nil, limit: nil)` fetches one `/search` page (at most one challenge retry). Scalar arguments remain
 compatible; plural filters emit repeated `lang`/`ext` parameters. `content`, explicit
 positive `page` and known sort modes are supported. No additional pages are fetched
 automatically. `limit` truncates locally (1–50), matching CLI local result limiting;
 it is never sent as a server parameter. Query size remains at most 512 bytes and filter lists at most 20
 values. Bibliographic format filters include PDF/EPUB and the comic archive formats;
 applications must still reject formats they cannot import. `detail(md5)` fetches one
-`/md5/<hash>` page. `resolve(url)` fetches and parses one ordinary same-origin
+`/md5/<hash>` page. `resolve(url)` fetches and parses a same-origin
 `/slow_download/<md5>/<number>/<number>` landing page. Signed query strings are
-preserved; encoded path alternatives and other origins are rejected before HTTP.
-It returns `Resolution`; pass its URL to `Downloader` after any required wait. The metadata client never automatically paginates, retries, sleeps, switches
-mirrors, imports cookies or executes scripts. File streaming is a separate
+preserved; caller-supplied encoded path alternatives and other origins are rejected before HTTP.
+It returns `Resolution`; pass its URL to `Downloader` after any required wait. The metadata client never automatically paginates, sleeps, switches
+mirrors, imports browser cookies or executes scripts. File streaming is a separate
 `Downloader` API, not an implicit effect of search/record parsing. There are no search caches.
 
 Each client serializes requests and enforces a local minimum interval (30 seconds
@@ -107,6 +107,57 @@ by default, configurable from 1–3600). This is a client policy, **not** a veri
 upstream rate allowance. HTTP 429 extends that cooldown using bounded supplied
 `retry_after` seconds; callers own any later scheduling. A request is charged even
 if its transport fails. Do not recreate clients to evade cooldowns.
+
+## One-shot challenge compatibility (0.3.0)
+
+Enabled by default for `Client`; set `challenge_retries: false` to opt out.
+Only the existing recognized challenge markers trigger a retry. Search/record
+GETs append literal `check=%31` to the original raw query (including repeated
+filters). `Client.resolve` instead replaces only the original same-origin
+`/slow_download/<lowercase-md5>/<number>/<number>[/]` raw prefix with
+`/slow%5Fdownload/`, preserving the complete signed query byte-for-byte.
+There is no query reserialization, general error retry, solver, browser,
+proxy bypass, mirror discovery or mirror switching. A second challenge returns
+`browser_verification_required`; plain 401/403/429, network failures and
+ordinary error pages never trigger a compatibility retry.
+
+For direct slow-route file transfers, configure the mirror explicitly:
+
+```crystal
+# Share this transport between Client and Downloader to retain the same session.
+transport = AnnasArchive::NativeHTTPTransport.new
+downloader = AnnasArchive::Downloader.new(transport,
+  origin: "https://annas-archive.gl", challenge_retries: true)
+```
+
+`Downloader.new(transport, policy, origin: nil, challenge_retries: true)`
+preserves existing constructors. **Without origin, no download URL is rewritten.**
+Even with origin, external hosts, already encoded or nonmatching raw paths are
+never rewritten. Each download retry shares the original transfer deadline and
+cancellation context; no challenge bytes enter the partial file or hash state.
+Challenge/error HTML inspection is bounded to 1 MiB. Normal validation, atomic
+no-overwrite publication and partial cleanup remain mandatory.
+
+The one immediate retry belongs to the same serialized metadata operation;
+there is no sleep. Its request is charged to the client's minimum interval too.
+429 and typed transport rate-limit errors on either request retain cooldowns;
+callers schedule subsequent operations. Each metadata transport call retains its
+normal page size/deadline policy (native default: 1 MiB / 30 seconds per request).
+Injected transports must retain the same policy and session across calls.
+
+The shared native transport retains response cookies in memory, including on
+challenge responses and permitted redirects. The conservative RFC6265 subset
+supports default/path-boundary matching, Secure, Expires, Max-Age (including
+deletion), replacement and secure cookie prefixes. Domain cookies are accepted
+only for the response's exact host and never sent to subdomains/other hosts.
+At most 32 cookies of 1024 bytes each are retained; malformed, oversized and
+excess new cookies are ignored. No browser cookie loading, cookie files,
+credentials or cookie logging are added. Redirect/DNS/TLS/proxy policies are
+unchanged. This is a session cookie jar, not browser or HTTP connection pooling.
+
+These compatibility behaviors are synthetic/offline verified only. They do not
+establish that a live challenge accepts the retry or that native live file
+acquisition works. See [challenge evidence](spec/differential/CHALLENGES.md).
 
 ## Errors and stability
 
@@ -116,7 +167,7 @@ closed code, never source HTML, credentials, transport exception text or a URL.
 | Code | Meaning |
 | --- | --- |
 | `invalid_input` | Invalid origin, query, filter or MD5 |
-| `browser_verification_required` | Recognized challenge; no retry or bypass |
+| `browser_verification_required` | Recognized challenge remains after the bounded retry, is outside scope, or retries are disabled |
 | `authentication_required` | HTTP 401 |
 | `access_denied` | HTTP 403 without a recognized challenge |
 | `rate_limited` | HTTP 429 or local cooldown |
@@ -148,13 +199,13 @@ search uses `/search` HTML; records use `/md5/<hash>`. Its free-source downloade
 handles landing pages/countdowns and verifies catalog MD5s. These behaviors do
 not establish a stable service contract or guaranteed comic metadata quality.
 
-That reference also changes query/path encoding after challenges. **Those retries
-are excluded here.** Protected pages stop with an error. Membership/cookie support,
+That reference's one-shot query/path encoding retries are implemented natively
+(see below); this is not a JS/CAPTCHA solver or live availability claim. Membership/browser-cookie import,
 arbitrary cross-origin HTML traversal, comic import and resumable jobs are not
 implemented. Ordinary same-host HTTPS redirects are bounded; file streaming,
 MD5/SHA-256 and bounded ZIP CRC/EPUB checks are implemented by `Downloader`.
 
-The implementation and synthetic fixtures are independently written; see `NOTICE`.
+The native implementation adapts the pinned MIT retry behavior; see `NOTICE`.
 Four reduced MIT-licensed reference HTML fixtures are included with their license
 for reproducible comparisons. No ebooks, account data, private application files
 or production configuration are included.
@@ -191,7 +242,7 @@ client = AnnasArchive::Client.new("https://annas-archive.gl", ->(url : String) {
   transport.page(url)
 })
 # Search, inspect a record, choose an ordinary source, and schedule any required
-# cooldown/countdown before client.resolve. Never retry a denied/challenged route.
+# cooldown/countdown before client.resolve. Plain denied routes are never retried.
 # `resolved` is the explicit Resolution from that permitted landing page.
 # output_directory must already exist, be caller-owned, and not group/world writable.
 # result = AnnasArchive::Downloader.new(transport).download(
@@ -199,7 +250,8 @@ client = AnnasArchive::Client.new("https://annas-archive.gl", ->(url : String) {
 ```
 
 `Downloader#download(url_or_resolution, destination, expected_md5, format: nil,
-cancelled: -> { false }, progress: nil)` performs one file transfer. MD5 is required
+cancelled: -> { false }, progress: nil)` performs one file transfer with at most
+one scoped challenge retry when configured (see below). MD5 is required
 and SHA-256 is computed while streaming. It returns `DownloadedFile` with `path`,
 `bytes`, `md5`, `sha256` and `validation`. A countdown produces
 `download_wait_required` with `retry_after`; it does not sleep or request a file.
@@ -214,7 +266,8 @@ not establish comic identity, authenticity, rights, or Imported state.
 Native transport requires HTTPS, excludes private/reserved/literal-IP targets,
 checks every DNS answer and pins the revalidated address while preserving TLS
 hostname verification/SNI. Redirects stay on the exact initial host and stop after
-three hops. No cookies or credentials are loaded. Error/redirect bodies are not
+three hops. No cookies or credentials are loaded from disk/browser; bounded
+same-host response cookies are retained in memory by the shared native transport. Error/redirect bodies are not
 drained indefinitely; metadata bodies and headers are bounded. HTTP 429 retains a
 per-host Retry-After cooldown; reuse the downloader rather than recreating it to
 evade that cooldown. The conservative address filter follows the
@@ -252,4 +305,6 @@ No live Anna request is made by either command. The full workflow fixture uses
 identical synthetic EPUB bytes for both clients, including search, record,
 countdown, landing control, ordinary redirect, transfer and hash/file validation.
 See `spec/differential/download-results.json` for success and failure evidence.
-The reference's outer challenge-retry method is never executed.
+The ordinary download comparison keeps the reference's outer retry method disabled.
+The separate challenge comparison executes the pinned retry methods against offline
+fixtures only; see `spec/differential/challenge-results.json`.

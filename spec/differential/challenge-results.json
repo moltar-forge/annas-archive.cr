@@ -1,0 +1,278 @@
+{
+  "reference_commit": "001ab3250e9cd829e7225b6385e3fb8aac999090",
+  "network": "none; MockTransport and native exchange seam; original Python retry methods enabled",
+  "rows": [
+    {
+      "name": "query_success",
+      "status": "match",
+      "python": {
+        "name": "query_success",
+        "outcome": "ok",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf",
+            "cookie": null
+          },
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf&check=%31",
+            "cookie": "session=test"
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      },
+      "crystal": {
+        "name": "query_success",
+        "outcome": "ok",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf",
+            "cookie": null
+          },
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf&check=%31",
+            "cookie": "session=test"
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      }
+    },
+    {
+      "name": "query_bounded",
+      "status": "match",
+      "python": {
+        "name": "query_bounded",
+        "outcome": "browser_verification_required",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf",
+            "cookie": null
+          },
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf&check=%31",
+            "cookie": "session=test"
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      },
+      "crystal": {
+        "name": "query_bounded",
+        "outcome": "browser_verification_required",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf",
+            "cookie": null
+          },
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf&check=%31",
+            "cookie": "session=test"
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      }
+    },
+    {
+      "name": "query_plain403",
+      "status": "match",
+      "python": {
+        "name": "query_plain403",
+        "outcome": "access_denied",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf",
+            "cookie": null
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      },
+      "crystal": {
+        "name": "query_plain403",
+        "outcome": "access_denied",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf",
+            "cookie": null
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      }
+    },
+    {
+      "name": "query_second429",
+      "status": "match",
+      "python": {
+        "name": "query_second429",
+        "outcome": "rate_limited",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf",
+            "cookie": null
+          },
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf&check=%31",
+            "cookie": "session=test"
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      },
+      "crystal": {
+        "name": "query_second429",
+        "outcome": "rate_limited",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf",
+            "cookie": null
+          },
+          {
+            "url": "https://catalog.example.invalid/search?q=%E4%B8%AD%E6%96%87+%26+Austen&display=&ext=epub&ext=pdf&check=%31",
+            "cookie": "session=test"
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      }
+    },
+    {
+      "name": "slow_success",
+      "status": "match",
+      "python": {
+        "name": "slow_success",
+        "outcome": "ok",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": null
+          },
+          {
+            "url": "https://catalog.example.invalid/slow%5Fdownload/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": "session=test"
+          }
+        ],
+        "artifact": {
+          "bytes": 599,
+          "md5": "ac20330c40fdf2dfce2d0ea3eddb5632",
+          "sha256": "bb10deee9fb40087ece40165dd4b15fc40c7f4284709f1fcb7fb852f0408516f"
+        },
+        "files": 1
+      },
+      "crystal": {
+        "name": "slow_success",
+        "outcome": "ok",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": null
+          },
+          {
+            "url": "https://catalog.example.invalid/slow%5Fdownload/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": "session=test"
+          }
+        ],
+        "artifact": {
+          "bytes": 599,
+          "md5": "ac20330c40fdf2dfce2d0ea3eddb5632",
+          "sha256": "bb10deee9fb40087ece40165dd4b15fc40c7f4284709f1fcb7fb852f0408516f"
+        },
+        "files": 1
+      }
+    },
+    {
+      "name": "slow_bounded",
+      "status": "match",
+      "python": {
+        "name": "slow_bounded",
+        "outcome": "browser_verification_required",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": null
+          },
+          {
+            "url": "https://catalog.example.invalid/slow%5Fdownload/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": "session=test"
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      },
+      "crystal": {
+        "name": "slow_bounded",
+        "outcome": "browser_verification_required",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": null
+          },
+          {
+            "url": "https://catalog.example.invalid/slow%5Fdownload/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": "session=test"
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      }
+    },
+    {
+      "name": "slow_external",
+      "status": "match",
+      "python": {
+        "name": "slow_external",
+        "outcome": "browser_verification_required",
+        "requests": [
+          {
+            "url": "https://other.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": null
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      },
+      "crystal": {
+        "name": "slow_external",
+        "outcome": "browser_verification_required",
+        "requests": [
+          {
+            "url": "https://other.example.invalid/slow_download/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": null
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      }
+    },
+    {
+      "name": "slow_encoded",
+      "status": "match",
+      "python": {
+        "name": "slow_encoded",
+        "outcome": "browser_verification_required",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/slow%5Fdownload/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": null
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      },
+      "crystal": {
+        "name": "slow_encoded",
+        "outcome": "browser_verification_required",
+        "requests": [
+          {
+            "url": "https://catalog.example.invalid/slow%5Fdownload/ac20330c40fdf2dfce2d0ea3eddb5632/0/0?sig=a%2Bb&x=1&x=2&empty=&z=%ff+%20",
+            "cookie": null
+          }
+        ],
+        "artifact": null,
+        "files": 0
+      }
+    }
+  ]
+}

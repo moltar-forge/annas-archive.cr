@@ -1,7 +1,7 @@
 {
   "reference_commit": "001ab3250e9cd829e7225b6385e3fb8aac999090",
   "shard_baseline": "ae5274a406365dc5dbd30179c6a7414a57f69bf2",
-  "network": "disabled; fixtures only; challenge-retry and downloader methods disabled",
+  "network": "disabled; fixtures only; Python challenge-retry and downloader methods disabled; native default retries enabled",
   "rows": [
     {
       "name": "reference-search",
