@@ -22,6 +22,29 @@ module AnnasArchive
     end
   end
 
+  enum HealthStatus
+    Working
+    Challenge
+    RateLimit
+    Network
+    Layout
+    Error
+  end
+
+  # Search reachability only, never authentication or download readiness.
+  record HealthCheck, status : HealthStatus, error_code : String? = nil, retry_after : Int32? = nil do
+    def self.from_error(ex : Error) : HealthCheck
+      status = case ex.code
+               when "browser_verification_required"                                                                                then HealthStatus::Challenge
+               when "rate_limited"                                                                                                 then HealthStatus::RateLimit
+               when "network_error", "download_network_error", "download_timeout", "download_dns_failed", "download_resolver_busy" then HealthStatus::Network
+               when "unrecognized_page", "malformed_response", "page_too_large", "result_limit"                                    then HealthStatus::Layout
+               else                                                                                                                     HealthStatus::Error
+               end
+      HealthCheck.new(status, ex.code, ex.retry_after)
+    end
+  end
+
   record Response, status : Int32, body : String, retry_after : Int32? = nil
   record Entry, md5 : String, title : String, language : String?, format : String?, summary : String,
     author : String? = nil, publisher : String? = nil, size : String? = nil, cover_url : String? = nil, url : String? = nil
@@ -296,6 +319,15 @@ module AnnasArchive
       Parser.search(page("/search?#{params}"), @origin, limit)
     end
 
+    # Fixed, small probe through the same session, pacing and challenge policy.
+    # An explicitly empty search is working; layout failures are not empty results.
+    def healthcheck : HealthCheck
+      search("comic", formats: ["cbz", "cbr"], limit: 1)
+      HealthCheck.new(HealthStatus::Working)
+    rescue ex : Error
+      HealthCheck.from_error(ex)
+    end
+
     # Extract only the identifier; never fetch the supplied origin.
     def self.record_id(value : String) : String
       value = value.strip
@@ -359,8 +391,8 @@ module AnnasArchive
       @fetch.call(url)
     rescue ex : Error
       raise ex
-    rescue
-      # Exceptions from a transport can contain endpoints or signed locators.
+    rescue IO::Error
+      # Operational IO failures are closed; programmer callback faults propagate.
       raise Error.new("network_error")
     end
   end

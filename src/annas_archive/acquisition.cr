@@ -87,6 +87,32 @@ module AnnasArchive
       @downloader = Downloader.new(@transport, @policy, origin, challenge_retries, @clock)
     end
 
+    # Metadata and acquisition share one persistent session, clock and cooldown.
+    def search(query : String, **options) : Array(Entry)
+      metadata { @client.search(query, **options) }
+    end
+
+    def detail(value : String) : Detail
+      metadata { @client.detail(value) }
+    end
+
+    def healthcheck(cancelled : Proc(Bool) = -> { false }) : HealthCheck
+      metadata(cancelled) { @client.healthcheck }
+    rescue ex : Error
+      # Includes failures while waiting for local pacing before the probe.
+      HealthCheck.from_error(ex)
+    end
+
+    private def metadata(cancelled : Proc(Bool) = -> { false }, &)
+      @lock.synchronize do
+        context = start(0, cancelled)
+        @transport.prepare(context)
+        yield
+      ensure
+        @active_context = nil
+      end
+    end
+
     # Explicit record and direct URL APIs avoid ambiguous source selection.
     def record(value : String, destination : String? = nil, expected_md5 : String? = nil, source : Int32? = nil,
                format : String? = nil, max_wait : Int32 = 300, cancelled : Proc(Bool) = -> { false },
